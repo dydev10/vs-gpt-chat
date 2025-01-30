@@ -55,9 +55,30 @@ function getWebviewContent() {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>DY DeepSeek Chat</title>
 			<style>
-				body { font-family: sans-serif; margin: 1rem; }
-				#prompt { width: 100%; box-sizing: border-box; }
-				#response { border: 1px solid #ccc; margin-top: 1rem; padding: 0.5rem; }
+				body {
+					font-family: sans-serif;
+					margin: 1rem;
+				}
+				#prompt {
+					width: 100%;
+					box-sizing:
+					border-box;
+				}
+				#response {
+					border: 1px solid #ccc;
+					margin-top: 1rem;
+					padding: 0.5rem;
+					white-space: pre-wrap;
+				}
+				code {
+					display: block;
+					background-color: #282c34;
+					color: #abb2bf;
+					padding: 10px;
+					border-radius: 5px;
+					font-family: monospace;
+					white-space: pre-wrap;
+				}
 			</style>
 		</head>
 		<body>
@@ -101,11 +122,24 @@ function getWebviewContent() {
 					const { command, text } = ev.data;
 
 					if (command === 'chatResponse') {
-						document.getElementById('response').innerText = text;
+						document.getElementById('response').innerHTML = parseCodeBlock(text);
 					}
 					
 					resetChat();
 				});
+
+				function htmlEntities(str) {
+					return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+				}
+
+				const parseCodeBlock = (string) => {
+					const codeRegex = /\`\`\`(.*?)\`\`\`/sg;
+					const encoded = htmlEntities(string);
+					console.log('encoded', encoded);
+					return encoded.replaceAll(codeRegex, (match) => {
+						return '<br><code>' + match.slice(3, -3) + '</code><br>';
+					});
+				};
 			</script>
 		</body>
 		</html>
