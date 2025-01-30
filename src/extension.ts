@@ -26,7 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				try {
 					const streamResponse = await ollama.chat({
-						model: 'deepseek-r1:1.5b',
+						model: 'deepseek-r1:7b',
 						messages: [{ role: 'user', content: userPrompt }],
 						stream: true,
 					});
