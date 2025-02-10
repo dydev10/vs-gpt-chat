@@ -55,20 +55,87 @@ function getWebviewContent() {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<title>DY DeepSeek Chat</title>
 			<style>
-				body {
-					font-family: sans-serif;
-					margin: 1rem;
-				}
-				#prompt {
+				 body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+						overflow: hidden;
+            background-color: #f4f4f4;
+						margin: 0;
+        }
+        .chat-container {
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+        .message {
+            padding: 8px;
+            margin: 5px 0;
+            max-width: 70%;
+        }
+        .user {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            border-radius: 10px 10px 0 10px;
+            padding: 8px;
+        }
+        .bot {
+            background-color: #e1e1e1;
+            color: black;
+            align-self: flex-start;
+            width: 100%;
+            padding: 8px;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            margin-left: 5px;
+            padding: 8px 12px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+				
+				#fresh-prompt {
 					width: 100%;
 					box-sizing:
 					border-box;
 				}
-				#response {
+
+				#fresh-note {
+					font-size: 0.625rem;
+				}
+
+				#fresh-response {
 					border: 1px solid #ccc;
 					margin-top: 1rem;
 					padding: 0.5rem;
 					white-space: pre-wrap;
+					max-height: 100%;
+					overflow-y: auto;
 				}
 				code {
 					display: block;
@@ -85,9 +152,17 @@ function getWebviewContent() {
 			<h2>DY DeepSeek Chat</h2>
 			<form id="askForm" action="">
 				<textarea autofocus id="prompt" rows="3" placeholder="Ask ..."></textarea>
-				<button type="submit" id="askBtn">Ask</button>
+				<button type="submit" id="askBtn">Ask <span id="fresh-note">(Fresh Context)</span></button>
 			</form>
 			<div id="response"></div>
+
+			<div class="chat-container">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="input-container">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    	</div>
 		
 			<script>
 				const vscode = acquireVsCodeApi();
