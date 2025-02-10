@@ -1,0 +1,55 @@
+
+.fresh-container {
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-height: 100%;
+  padding: 1rem;
+}
+
+
+.fresh-container input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.fresh-container button {
+  margin-left: 5px;
+  padding: 8px 12px;
+  border: none;
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.fresh-container #fresh-prompt {
+  width: 100%;
+  box-sizing:
+  border-box;
+}
+
+.fresh-container #fresh-note {
+  font-size: 0.625rem;
+}
+
+.fresh-container #fresh-response {
+  border: 1px solid #ccc;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  white-space: pre-wrap;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.fresh-container code {
+  display: block;
+  background-color: #282c34;
+  color: #abb2bf;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
