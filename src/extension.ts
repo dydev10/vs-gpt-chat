@@ -151,10 +151,10 @@ function getWebviewContent() {
 		<body>
 			<h2>DY DeepSeek Chat</h2>
 			<form id="askForm" action="">
-				<textarea autofocus id="prompt" rows="3" placeholder="Ask ..."></textarea>
+				<textarea autofocus id="fresh-prompt" rows="3" placeholder="Ask ..."></textarea>
 				<button type="submit" id="askBtn">Ask <span id="fresh-note">(Fresh Context)</span></button>
 			</form>
-			<div id="response"></div>
+			<div id="fresh-response"></div>
 
 			<div class="chat-container">
         <div class="chat-box" id="chat-box"></div>
@@ -168,13 +168,13 @@ function getWebviewContent() {
 				const vscode = acquireVsCodeApi();
 
 				const submitChat = () =>{
-					const promptTextArea = document.getElementById('prompt');
+					const promptTextArea = document.getElementById('fresh-prompt');
 					const text = promptTextArea.value;
 					vscode.postMessage({ command: 'chat', text });
 				}
 
 				const resetChat = () => {
-					const promptTextArea = document.getElementById('prompt');
+					const promptTextArea = document.getElementById('fresh-prompt');
 					promptTextArea.setSelectionRange(0, promptTextArea.value.length);
 					promptTextArea.focus();
 					promptTextArea.value = "";
@@ -197,7 +197,7 @@ function getWebviewContent() {
 					const { command, text } = ev.data;
 
 					if (command === 'chatResponse') {
-						document.getElementById('response').innerHTML = parseCodeBlock(text);
+						document.getElementById('fresh-response').innerHTML = parseCodeBlock(text);
 					}
 					
 					resetChat();
