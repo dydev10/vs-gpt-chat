@@ -7,5 +7,18 @@
 		"out": true // set this to false to include "out" folder in search results
 	},
 	// Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-	"typescript.tsc.autoDetect": "off"
+	"typescript.tsc.autoDetect": "off",
+
+	// folder color extension to make it easier to see frontend vs core extension code
+	"folder-path-color.folders": [
+		{
+			"path": "webview-ui",
+			"color": "custom1",
+			// "symbol": "FE",
+			// "tooltip": "FrontEnd"
+		},
+	],
+	"workbench.colorCustomizations": {
+		"folderPathColor.custom1": "#bd95bd"
+	},
 }
