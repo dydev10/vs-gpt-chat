@@ -20,6 +20,7 @@
   padding: 8px;
   margin: 5px 0;
   max-width: 70%;
+  font-size: 0.75rem;
 }
 
 .user {
@@ -33,13 +34,16 @@
 .bot {
   background-color: #e1e1e1;
   color: black;
-  align-self: flex-start;
-  width: 100%;
+  align-self: stretch;
+  max-width: 100%;
   padding: 8px;
+  display: inline-block;
 }
 .input-container {
   display: flex;
-  padding: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
 }
 
 .chat-container input {
@@ -49,7 +53,7 @@
   border-radius: 5px;
 }
 
-.chat-container button {
+.chat-container button[type="submit"] {
   margin-left: 5px;
   padding: 8px 12px;
   border: none;
@@ -58,3 +62,13 @@
   border-radius: 5px;
   cursor: pointer;
 }
+
+/* .chat-container code {
+  display: block;
+  background-color: #282c34;
+  color: #abb2bf;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  white-space: pre-wrap;
+} */

@@ -1,7 +1,11 @@
 import { useCallback, useEffect } from "react";
 import { vscode } from "../utilities/vscode";
 
-const useChat = (onMessage?: (text: string) => void) => {
+const useChat = (
+  onMessage?: (text: string) => void,
+  onMessageStart?: () => void,
+  onMessageEnd?: () => void,
+) => {
   const sendChat = (text: string) => {
     vscode.postMessage({ command: 'chat', text });
   }
@@ -12,8 +16,14 @@ const useChat = (onMessage?: (text: string) => void) => {
     if (command === 'chatResponse' && onMessage) {
       onMessage(text);
     }
+    if (command === 'chatStart' && onMessageStart) {
+      onMessageStart();
+    }
+    if (command === 'chatEnd' && onMessageEnd) {
+      onMessageEnd();
+    }
     
-  }, [onMessage]);
+  }, [onMessage, onMessageStart, onMessageEnd]);
 
   useEffect(() => {
     window.addEventListener('message', handleWebviewMessage);

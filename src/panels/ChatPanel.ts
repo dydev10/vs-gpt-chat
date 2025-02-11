@@ -173,11 +173,21 @@ export class ChatPanel {
                 messages: [{ role: 'user', content: userPrompt }],
                 stream: true,
               });
+              let started = false;
   
               for await (const part of streamResponse) {
+                if (!started) {
+                  started = true;
+                  this._panel.webview.postMessage({ command: 'chatStart', text: '' });
+                }
+
                 responseText += part.message.content;
                 this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
               }
+
+              // send stream end event
+              started = false;
+              this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
             } catch (error: any) {
               this._panel.webview.postMessage({ command: 'chatError', text: String(error.message) });
               window.showErrorMessage('Error while running model', error.message);
