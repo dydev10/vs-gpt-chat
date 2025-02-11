@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useRef } from 'react'
 import './Fresh.css';
 import { parseCodeBlock } from '../utilities/parse';
 import { WebviewApi } from 'vscode-webview';
@@ -12,7 +12,7 @@ const Fresh: React.FC = () => {
     const text = promptTextArea.value;
     vscodeRef.current?.postMessage({ command: 'chat', text });
 
-    console.log('submit');
+    console.log('submit', text);
     
   }
 
@@ -23,40 +23,50 @@ const Fresh: React.FC = () => {
     promptTextArea.value = "";
   };
 
-  useEffect(() => {
-    console.log('Fresh Init');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleWebviewMessage = useCallback((ev: any) => {
+    const { command, text } = ev.data;
+    const responseEl = document.getElementById('fresh-response');
 
-    // vscodeRef.current = acquireVsCodeApi();
+    if (command === 'chatResponse' && responseEl !== null) {
+      responseEl.innerHTML = parseCodeBlock(text);
+    }
+    
+    resetChat();
+  }, []); 
 
-    document.getElementById('askForm')?.addEventListener('submit', (e) => {
-					e.preventDefault();
-					submitChat();
-				});
-
+  const handleKeyDown = (e: KeyboardEvent) => {
     // trigger submit on enter press
-    document.addEventListener('keydown', (e) => {
-      if (!e.shiftKey && e.code == 'Enter') {
-        e.preventDefault();
-        submitChat();
-      }
-    })
+    if (!e.shiftKey && e.code == 'Enter') {
+      e.preventDefault();
+      submitChat();
+    }
+  };
 
-    window.addEventListener('message', (ev) => {
-      const { command, text } = ev.data;
-      const responseEl = document.getElementById('fresh-response');
+  const handleFormSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    submitChat();
+  };
 
-      if (command === 'chatResponse' && responseEl !== null) {
-        responseEl.innerHTML = parseCodeBlock(text);
-      }
-      
-      resetChat();
-    });
-  }, []);
+  useEffect(() => {
+    console.log('Updating handlers');
+  
+    // vscodeRef.current = acquireVsCodeApi();
+  } ,[]);
+
+  useEffect(() => {
+
+    
+    window.addEventListener('message', handleWebviewMessage);
+    return () => {
+      window.removeEventListener('message', handleWebviewMessage);
+    }
+  }, [handleWebviewMessage]);
 
   return (
       <div className="fresh-container">
-        <form id="askForm" action="">
-				<textarea autoFocus id="fresh-prompt" rows={3} placeholder="Ask ..."></textarea>
+        <form id="askForm" onSubmit={handleFormSubmit} action="">
+				<textarea onKeyDown={handleKeyDown} autoFocus id="fresh-prompt" rows={3} placeholder="Ask ..."></textarea>
 				<button type="submit" id="askBtn">Ask <span id="fresh-note">(Fresh Context)</span></button>
         </form>
         <div id="fresh-response"></div>
