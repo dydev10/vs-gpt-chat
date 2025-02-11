@@ -1,4 +1,5 @@
 import Prism from "prismjs";
+import dompurify from "dompurify";
 
 const NEW_LINE_EXP = /\n(?!$)/g;
 export const htmlEntities = (str: string): string => {
@@ -25,6 +26,7 @@ export const formatMessage = (content: string) => {
       highlightedCode,
       grammar: Prism.languages[language],
       lines: highlightedCode.match(NEW_LINE_EXP),
+      sanitized: dompurify.sanitize(code, { USE_PROFILES: { html: true } }),
     });
 
     const match = highlightedCode.match(NEW_LINE_EXP);
