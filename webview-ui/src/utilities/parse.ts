@@ -1,5 +1,6 @@
 import Prism from "prismjs";
 
+const NEW_LINE_EXP = /\n(?!$)/g;
 export const htmlEntities = (str: string): string => {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 };
@@ -23,11 +24,18 @@ export const formatMessage = (content: string) => {
       language,
       highlightedCode,
       grammar: Prism.languages[language],
+      lines: highlightedCode.match(NEW_LINE_EXP),
     });
+
+    const match = highlightedCode.match(NEW_LINE_EXP);
+    const linesNum = match ? match.length + 1 : 1;
+    const lines = new Array(linesNum + 1).join('<span></span>');
+
+    const lineNumbersWrapper = `<span aria-hidden="true" class="line-numbers-rows">${lines}</span>`;
     
     // const escapedCode = htmlEntities(highlightedCode);
     // return `<pre class="language-${language} line-numbers" language-${language}><div class="code-header"><span class="code-language">${language}</span><button class="copy-button">Copy</button></div><code class="language-${language}">${highlightedCode}</code></pre>`;
-    return `<pre class="language-${language} line-numbers" language-${language}><code class="language-${language}">${highlightedCode}</code></pre>`;
+    return `<pre class="language-${language} line-numbers" language-${language}><code class="language-${language}">${highlightedCode} ${lineNumbersWrapper}</code></pre>`;
   });
   
   // Format inline code
