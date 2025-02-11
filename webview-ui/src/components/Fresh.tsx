@@ -1,9 +1,17 @@
-import React, { FormEvent, KeyboardEvent, useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import './Fresh.css';
 import { parseCodeBlock } from '../utilities/parse';
 import useChat from '../hooks/useChat';
+import useForm from '../hooks/useForm';
 
 const Fresh: React.FC = () => {
+  const resetChat = () => {
+    const promptTextArea = document.getElementById('fresh-prompt') as HTMLInputElement;
+    promptTextArea.setSelectionRange(0, promptTextArea.value.length);
+    promptTextArea.focus();
+    promptTextArea.value = "";
+  };
+  
   const handleMessage = useCallback((text: string) => {
     const responseEl = document.getElementById('fresh-response') as HTMLElement;
     responseEl.innerHTML = parseCodeBlock(text);
@@ -11,52 +19,11 @@ const Fresh: React.FC = () => {
     resetChat();
   }, []);
 
+  /**
+   * hooks
+   */
   const { sendChat } = useChat(handleMessage);
-  
-  const submitChat = () => {
-    const promptTextArea = document.getElementById('fresh-prompt') as HTMLInputElement;
-    const text = promptTextArea.value;
-    sendChat(text);
-  }
-
-  const resetChat = () => {
-    const promptTextArea = document.getElementById('fresh-prompt') as HTMLInputElement;
-    promptTextArea.setSelectionRange(0, promptTextArea.value.length);
-    promptTextArea.focus();
-    promptTextArea.value = "";
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleWebviewMessage = useCallback((ev: any) => {
-    const { command, text } = ev.data;
-    const responseEl = document.getElementById('fresh-response');
-
-    if (command === 'chatResponse' && responseEl !== null) {
-      responseEl.innerHTML = parseCodeBlock(text);
-    }
-    
-    resetChat();
-  }, []);
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    // trigger submit on enter press
-    if (!e.shiftKey && e.code == 'Enter') {
-      e.preventDefault();
-      submitChat();
-    }
-  };
-
-  const handleFormSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    submitChat();
-  };
-
-  useEffect(() => {
-    window.addEventListener('message', handleWebviewMessage);
-    return () => {
-      window.removeEventListener('message', handleWebviewMessage);
-    }
-  }, [handleWebviewMessage]);
+  const { handleKeyDown , handleFormSubmit} = useForm('fresh-prompt', sendChat);
 
   return (
       <div className="fresh-container">

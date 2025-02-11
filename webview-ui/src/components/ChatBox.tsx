@@ -1,37 +1,42 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import './ChatBox.css';
+import useChat from '../hooks/useChat';
+import useForm from '../hooks/useForm';
+import { parseCodeBlock } from '../utilities/parse';
 
 const ChatBox: React.FC = () => {
-  function sendMessage() {
-    const input = document.getElementById("message-input") as HTMLInputElement;
-    const message = input.value.trim();
-    if (message === "") return;
-
+  const createBubble = (text: string, bot: boolean = false) => {
     const chatBox = document.getElementById("chat-box") as HTMLElement;
-    const userMessage = document.createElement("div");
-    userMessage.classList.add("message", "user");
-    userMessage.textContent = message;
-    chatBox.appendChild(userMessage);
-
-    setTimeout(() => {
-        const botMessage = document.createElement("div");
-        botMessage.classList.add("message", "bot");
-        botMessage.textContent = "I'm just a bot!. hUGE TEST RESPONSE. SKFHFKHAFS FIHAFKAFHASHKFASF SFHSFKHASFAS";
-        chatBox.appendChild(botMessage);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }, 500);
-
-    input.value = "";
+    const bubbleEl = document.createElement("div");
+    bubbleEl.classList.add("message", bot ? "bot": "user");
+    bubbleEl.textContent = text;
+    chatBox.appendChild(bubbleEl);
     chatBox.scrollTop = chatBox.scrollHeight;
-}
+  }
+  const handleMessage = useCallback((text: string) => {
+    const responseEl = document.getElementById('fresh-response') as HTMLElement;
+    responseEl.innerHTML = parseCodeBlock(text);
+
+    const botText = "I'm just a bot!. hUGE TEST RESPONSE. SKFHFKHAFS FIHAFKAFHASHKFASF SFHSFKHASFAS";
+    createBubble(botText, true);
+  }, []);
+
+  /**
+   * hooks
+   */
+  const { sendChat } = useChat(handleMessage);
+  const { handleKeyDown , handleFormSubmit} = useForm('chat-prompt', (text: string) => {
+    createBubble(text, false);
+    sendChat(text);
+  });
 
   return (
       <div className="chat-container">
         <div className="chat-box" id="chat-box"></div>
-        <div className="input-container">
-            <input type="text" id="message-input" placeholder="Type a message..." />
-            <button onClick={sendMessage}>Send</button>
-        </div>
+        <form id="input-container" onSubmit={handleFormSubmit} action="">
+				<textarea onKeyDown={handleKeyDown} autoFocus id="chat-prompt" rows={3} placeholder="Ask ..."></textarea>
+				<button type="submit" id="sendBtn">Send</button>
+        </form>
       </div>
   );
 }
