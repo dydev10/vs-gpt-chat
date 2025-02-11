@@ -1,30 +1,55 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import './ChatBox.css';
 import useChat from '../hooks/useChat';
 import useForm from '../hooks/useForm';
 import { parseCodeBlock } from '../utilities/parse';
 
 const ChatBox: React.FC = () => {
-  const createBubble = (text: string, bot: boolean = false) => {
+  const [responseId, setResponseId] = useState<number|null>(null);
+
+  const createBubble = (text: string, bot: boolean = false, resId?: number) => {
     const chatBox = document.getElementById("chat-box") as HTMLElement;
     const bubbleEl = document.createElement("div");
     bubbleEl.classList.add("message", bot ? "bot": "user");
     bubbleEl.textContent = text;
     chatBox.appendChild(bubbleEl);
     chatBox.scrollTop = chatBox.scrollHeight;
+    
+    if (bot && resId !== null) {
+      bubbleEl.id =  `${resId}`;
+    }
   }
-  const handleMessage = useCallback((text: string) => {
-    const responseEl = document.getElementById('fresh-response') as HTMLElement;
-    responseEl.innerHTML = parseCodeBlock(text);
 
-    const botText = "I'm just a bot!. hUGE TEST RESPONSE. SKFHFKHAFS FIHAFKAFHASHKFASF SFHSFKHASFAS";
-    createBubble(botText, true);
+  const updateBubble = (resId: number, text: string) => {
+    const chatBox = document.getElementById("chat-box") as HTMLElement;
+    const bubbleEl = document.getElementById(`${resId}`) as HTMLElement;
+   
+    bubbleEl.innerHTML = text;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+
+  const handleMessage = useCallback((text: string) => {
+    if (responseId) {
+      updateBubble(responseId, parseCodeBlock(text));
+    }
+  }, [responseId]);
+
+  const handleMessageStart = useCallback(() => {
+    const resId = responseId === null ? 0 : responseId + 1;
+    createBubble('', true, resId);
+    
+    setResponseId(resId);
+  }, [responseId]);
+
+  const handleMessageEnd = useCallback(() => {
+    // setResponseId(null);
   }, []);
 
   /**
    * hooks
    */
-  const { sendChat } = useChat(handleMessage);
+  const { sendChat } = useChat(handleMessage, handleMessageStart, handleMessageEnd);
   const { handleKeyDown , handleFormSubmit} = useForm('chat-prompt', (text: string) => {
     createBubble(text, false);
     sendChat(text);

@@ -58,3 +58,13 @@
   border-radius: 5px;
   cursor: pointer;
 }
+
+.chat-container code {
+  display: block;
+  background-color: #3d588f;
+  color: #abb2bf;
+  padding: 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  white-space: pre-wrap;
+}

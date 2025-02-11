@@ -5,7 +5,6 @@ export const htmlEntities = (str: string): string => {
 export const parseCodeBlock = (text: string): string => {
   const codeRegex = /```(.*?)```/sg;
   const encoded = htmlEntities(text);
-  console.log('encoded', encoded);
   return encoded.replaceAll(codeRegex, (match: string) => {
     return '<br><code>' + match.slice(3, -3) + '</code><br>';
   });
