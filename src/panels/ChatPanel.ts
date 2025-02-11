@@ -3,21 +3,30 @@ import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 
 /**
- * This class manages the state and behavior of HelloWorld webview panels.
- *
- * It contains all the data and methods for:
- *
- * - Creating and rendering HelloWorld webview panels
- * - Properly cleaning up and disposing of webview resources when the panel is closed
- * - Setting the HTML (and by proxy CSS/JavaScript) content of the webview panel
- * - Setting message listeners so data can be passed between the webview and extension
+ * Comments marked with [HelloWorld] from the HelloWorld webview panels for doc reference
+ * 
  */
-export class HelloWorldPanel {
-  public static currentPanel: HelloWorldPanel | undefined;
+
+/**
+  * [HelloWorld]
+  * 
+  * This class manages the state and behavior of HelloWorld webview panels.
+  *
+  * It contains all the data and methods for:
+  *
+  * - Creating and rendering HelloWorld webview panels
+  * - Properly cleaning up and disposing of webview resources when the panel is closed
+  * - Setting the HTML (and by proxy CSS/JavaScript) content of the webview panel
+  * - Setting message listeners so data can be passed between the webview and extension
+  */
+export class ChatPanel {
+  public static currentPanel: ChatPanel | undefined;
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
 
   /**
+   * [HelloWorld]
+   * 
    * The HelloWorldPanel class private constructor (called only from the render method).
    *
    * @param panel A reference to the webview panel
@@ -38,15 +47,17 @@ export class HelloWorldPanel {
   }
 
   /**
+   * [HelloWorld]
+   * 
    * Renders the current webview panel if it exists otherwise a new webview panel
    * will be created and displayed.
    *
    * @param extensionUri The URI of the directory containing the extension.
    */
   public static render(extensionUri: Uri) {
-    if (HelloWorldPanel.currentPanel) {
+    if (ChatPanel.currentPanel) {
       // If the webview panel already exists reveal it
-      HelloWorldPanel.currentPanel._panel.reveal(ViewColumn.One);
+      ChatPanel.currentPanel._panel.reveal(ViewColumn.One);
     } else {
       // If a webview panel does not already exist create and show a new one
       const panel = window.createWebviewPanel(
@@ -65,15 +76,17 @@ export class HelloWorldPanel {
         }
       );
 
-      HelloWorldPanel.currentPanel = new HelloWorldPanel(panel, extensionUri);
+      ChatPanel.currentPanel = new ChatPanel(panel, extensionUri);
     }
   }
 
   /**
+   * [HelloWorld]
+   * 
    * Cleans up and disposes of webview resources when the webview panel is closed.
    */
   public dispose() {
-    HelloWorldPanel.currentPanel = undefined;
+    ChatPanel.currentPanel = undefined;
 
     // Dispose of the current webview panel
     this._panel.dispose();
@@ -88,6 +101,8 @@ export class HelloWorldPanel {
   }
 
   /**
+   * [HelloWorld]
+   * 
    * Defines and returns the HTML that should be rendered within the webview panel.
    *
    * @remarks This is also the place where references to the React webview build files
@@ -106,7 +121,7 @@ export class HelloWorldPanel {
 
     const nonce = getNonce();
 
-    // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
+    // [HelloWorld] Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return /*html*/ `
       <!DOCTYPE html>
       <html lang="en">
@@ -126,6 +141,8 @@ export class HelloWorldPanel {
   }
 
   /**
+   * [HelloWorld]
+   * 
    * Sets up an event listener to listen for messages passed from the webview context and
    * executes code based on the message that is recieved.
    *
