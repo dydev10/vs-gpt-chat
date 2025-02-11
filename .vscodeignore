@@ -11,7 +11,7 @@ out/test/**
 # Ignore source code
 src/**
 
-# Ignore all webview-ui files except the build directory
+# Ignore all webview-ui files except the build/dist directory
 webview-ui/src/**
 webview-ui/public/**
 webview-ui/scripts/**
