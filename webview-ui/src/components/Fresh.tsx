@@ -1,13 +1,22 @@
-import React, { FormEvent, KeyboardEvent, useCallback, useEffect } from 'react'
+import React, { FormEvent, KeyboardEvent, useCallback, useEffect } from 'react';
 import './Fresh.css';
 import { parseCodeBlock } from '../utilities/parse';
-import { vscode } from '../utilities/vscode';
+import useChat from '../hooks/useChat';
 
 const Fresh: React.FC = () => {
-  const submitChat = () =>{
+  const handleMessage = useCallback((text: string) => {
+    const responseEl = document.getElementById('fresh-response') as HTMLElement;
+    responseEl.innerHTML = parseCodeBlock(text);
+
+    resetChat();
+  }, []);
+
+  const { sendChat } = useChat(handleMessage);
+  
+  const submitChat = () => {
     const promptTextArea = document.getElementById('fresh-prompt') as HTMLInputElement;
     const text = promptTextArea.value;
-    vscode.postMessage({ command: 'chat', text });
+    sendChat(text);
   }
 
   const resetChat = () => {
@@ -27,7 +36,7 @@ const Fresh: React.FC = () => {
     }
     
     resetChat();
-  }, []); 
+  }, []);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     // trigger submit on enter press

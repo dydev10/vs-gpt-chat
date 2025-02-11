@@ -11,11 +11,11 @@ import { getNonce } from "../utilities/getNonce";
 /**
   * [HelloWorld]
   * 
-  * This class manages the state and behavior of HelloWorld webview panels.
+  * This class manages the state and behavior of ChatPanel webview panels.
   *
   * It contains all the data and methods for:
   *
-  * - Creating and rendering HelloWorld webview panels
+  * - Creating and rendering ChatPanel webview panels
   * - Properly cleaning up and disposing of webview resources when the panel is closed
   * - Setting the HTML (and by proxy CSS/JavaScript) content of the webview panel
   * - Setting message listeners so data can be passed between the webview and extension
@@ -28,7 +28,7 @@ export class ChatPanel {
   /**
    * [HelloWorld]
    * 
-   * The HelloWorldPanel class private constructor (called only from the render method).
+   * The ChatPanel class private constructor (called only from the render method).
    *
    * @param panel A reference to the webview panel
    * @param extensionUri The URI of the directory containing the extension
