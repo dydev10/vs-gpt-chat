@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react'
 import './ChatBox.css';
 import useChat from '../hooks/useChat';
 import useForm from '../hooks/useForm';
-import { parseCodeBlock } from '../utilities/parse';
+import { formatMessage } from '../utilities/parse';
 
 type HistoryItem = {
   text: string;
@@ -53,7 +53,7 @@ const ChatBox: React.FC = () => {
 
   const handleMessage = useCallback((text: string) => {
     if (responseId !== null) {
-      updateBubble(responseId, parseCodeBlock(text));
+      updateBubble(responseId, formatMessage(text));
     }
   }, [responseId]);
 
