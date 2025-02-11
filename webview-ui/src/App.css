@@ -62,4 +62,5 @@ pre code {
   font-family: monospace;
   font-size: 0.75rem;
   white-space: pre-wrap;
+  text-align: left;
 }
