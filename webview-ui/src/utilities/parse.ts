@@ -26,7 +26,7 @@ export const formatMessage = (content: string) => {
     });
     
     // const escapedCode = htmlEntities(highlightedCode);
-    return `<pre class="line-numbers" language-${language}><div class="code-header"><span class="code-language">${language}</span><button class="copy-button">Copy</button></div><code>${highlightedCode}</code></pre>`;
+    return `<pre class="line-numbers" language-${language}><div class="code-header"><span class="code-language">${language}</span><button class="copy-button">Copy</button></div><code class="language-${language}">${highlightedCode}</code></pre>`;
   });
   
   // Format inline code
