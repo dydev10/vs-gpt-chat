@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import prism from 'vite-plugin-prismjs';
-
+import { analyzer } from 'vite-bundle-analyzer'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -11,6 +11,9 @@ export default defineConfig({
       plugins: ['line-numbers'],
       theme: 'tomorrow',
       css: true,
+    }),
+    analyzer({
+      openAnalyzer: false,
     }),
   ],
   build: {

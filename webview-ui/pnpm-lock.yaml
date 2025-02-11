@@ -57,6 +57,9 @@ importers:
       vite:
         specifier: ^6.1.0
         version: 6.1.0
+      vite-bundle-analyzer:
+        specifier: ^0.17.0
+        version: 0.17.0
       vite-plugin-prismjs:
         specifier: ^0.0.11
         version: 0.0.11(prismjs@1.29.0)
@@ -1040,6 +1043,10 @@ packages:
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
+
+  vite-bundle-analyzer@0.17.0:
+    resolution: {integrity: sha512-pSQng2NuhPo13hdSFcjW/Kjq8hmdfzCkJhWvAP5g98WbqZvy1k3Z+cpDxD9oxdNqOHHQFnEAIHR/MY6El1NnHA==}
+    hasBin: true
 
   vite-plugin-prismjs@0.0.11:
     resolution: {integrity: sha512-20NBQxg/zH+3FTrlU6BQTob720xkuXNYtrx7psAQ4E6pMcRDeLEK77QU9kXURU587+f2To7ASH1JVTGbXVV/vQ==}
@@ -2033,6 +2040,8 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  vite-bundle-analyzer@0.17.0: {}
 
   vite-plugin-prismjs@0.0.11(prismjs@1.29.0):
     dependencies:
