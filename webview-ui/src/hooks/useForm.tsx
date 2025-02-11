@@ -6,6 +6,7 @@ const useForm = (inputId: string,  onSubmit?: (text: string) => void) => {
     const text = textArea.value;
     if (text && onSubmit) {
       onSubmit(text);
+      textArea.value = '';
     }
   }, [inputId, onSubmit]);
 
