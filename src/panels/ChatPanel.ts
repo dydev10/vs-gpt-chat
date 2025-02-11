@@ -1,4 +1,5 @@
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
+import ollama from 'ollama';
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 
@@ -62,9 +63,9 @@ export class ChatPanel {
       // If a webview panel does not already exist create and show a new one
       const panel = window.createWebviewPanel(
         // Panel view type
-        "showHelloWorld",
+        "deepChat",
         // Panel title
-        "Hello World",
+        "Deep Seek Chat",
         // The editor column the panel should be displayed in
         ViewColumn.One,
         // Extra panel configurations
@@ -130,7 +131,7 @@ export class ChatPanel {
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
-          <title>Hello World</title>
+          <title>DY DeepSeek Chat</title>
         </head>
         <body>
           <div id="root"></div>
@@ -151,17 +152,38 @@ export class ChatPanel {
    */
   private _setWebviewMessageListener(webview: Webview) {
     webview.onDidReceiveMessage(
-      (message: any) => {
+      async (message: any) => {
         const command = message.command;
         const text = message.text;
 
         switch (command) {
-          case "hello":
+          case "hello": {
             // Code that should run in response to the hello message command
             window.showInformationMessage(text);
             return;
-          // Add more switch case statements here as more webview message commands
-          // are created within the webview context (i.e. inside media/main.js)
+          };
+          
+          case "chat": {
+            const userPrompt = message.text;
+            let responseText = '';
+
+            try {
+              const streamResponse = await ollama.chat({
+                model: 'deepseek-r1:7b',
+                messages: [{ role: 'user', content: userPrompt }],
+                stream: true,
+              });
+  
+              for await (const part of streamResponse) {
+                responseText += part.message.content;
+                this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
+              }
+            } catch (error: any) {
+              this._panel.webview.postMessage({ command: 'chatError', text: String(error.message) });
+              window.showErrorMessage('Error while running model', error.message);
+            }
+            return;
+          };
         }
       },
       undefined,

@@ -1,19 +1,13 @@
-import React, { FormEvent, KeyboardEvent, useCallback, useEffect, useRef } from 'react'
+import React, { FormEvent, KeyboardEvent, useCallback, useEffect } from 'react'
 import './Fresh.css';
 import { parseCodeBlock } from '../utilities/parse';
-import { WebviewApi } from 'vscode-webview';
+import { vscode } from '../utilities/vscode';
 
 const Fresh: React.FC = () => {
-  // const vscode = acquireVsCodeApi();
-  const vscodeRef = useRef<WebviewApi<unknown>>(null);
-
   const submitChat = () =>{
     const promptTextArea = document.getElementById('fresh-prompt') as HTMLInputElement;
     const text = promptTextArea.value;
-    vscodeRef.current?.postMessage({ command: 'chat', text });
-
-    console.log('submit', text);
-    
+    vscode.postMessage({ command: 'chat', text });
   }
 
   const resetChat = () => {
@@ -49,14 +43,6 @@ const Fresh: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('Updating handlers');
-  
-    // vscodeRef.current = acquireVsCodeApi();
-  } ,[]);
-
-  useEffect(() => {
-
-    
     window.addEventListener('message', handleWebviewMessage);
     return () => {
       window.removeEventListener('message', handleWebviewMessage);
