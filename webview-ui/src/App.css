@@ -52,15 +52,16 @@ pre .copy-button {
 }
 
 pre code {
-  display: block;
+  position: relative;
+	display: block;
   /* background-color: #282c34; */
   /* color: #abb2bf; */
   /* padding: 8px; */
-  border-radius: 5px;
+  /* border-radius: 5px;
   border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
+  border-top-right-radius: 0px; */
   /* font-family: monospace; */
-  font-size: 0.75rem;
+  /* font-size: 0.75rem;
   white-space: pre-wrap;
-  text-align: left;
+  text-align: left; */
 }
