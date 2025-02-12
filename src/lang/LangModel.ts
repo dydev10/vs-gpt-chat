@@ -1,20 +1,26 @@
-import ollama, { ChatResponse } from "ollama";
-import { Stream } from "stream";
+import { ChatOllama } from "@langchain/ollama";
 
 class LangModel {
-  model: string;
+  modelName: string;
+  model: ChatOllama;
 
-  constructor(model: string = 'deepseek-r1:7b') {
-    this.model = model;
+  constructor(modelName: string = 'deepseek-r1:7b') {
+    this.modelName = modelName;
+    
+    this.model = new ChatOllama({
+      baseUrl: 'http://localhost:11434',
+      model: 'deepseek-r1:7b',
+    });
   }
 
   // TODO: fix stream typing to make it arg
-  chat = async (userPrompt: string): Promise<AsyncIterable<ChatResponse>> => {
-    return await ollama.chat({
-      model: this.model,
+  chat = async (userPrompt: string) => {
+    const response = await this.model.client.chat({
+      model: this.modelName,
       messages: [{ role: 'user', content: userPrompt }],
       stream: true,
     });
+    return response;
   };
 }
 
