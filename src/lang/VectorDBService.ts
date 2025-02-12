@@ -4,7 +4,7 @@ export type SimilarityMetric = 'dot_product' | 'cosine' | 'euclidean';
 
 class VectorDBService {
   client: DataAPIClient;
-  db: Db
+  db: Db;
 
   constructor() {
     const {
