@@ -42,12 +42,14 @@
 
 .user {
   @apply
-  bg-teal-500
-  text-white
-  self-end
-  rounded-md
-  rounded-br-none
-  p-2;
+    bg-teal-500
+    text-white
+    self-end
+    rounded-2xl
+    rounded-br-xs
+    p-4
+    mt-8
+  ;
 }
 
 .bot {
@@ -56,7 +58,7 @@
     text-black
     self-stretch
     max-w-full
-    p-2
+    p-4
     inline-block
     text-left
     rounded-sm
