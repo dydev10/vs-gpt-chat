@@ -1,5 +1,6 @@
 import Prism from "prismjs";
 import dompurify from "dompurify";
+import { marked } from "marked";
 
 const NEW_LINE_EXP = /\n(?!$)/g;
 export const htmlEntities = (str: string): string => {
@@ -37,10 +38,10 @@ export const formatMessage = (content: string) => {
   
   // Format inline code, [Handle single backticks `code`]
   // TODO: remove extra dom purify, when htmlEntities handles enough 
-  let finalContent = dompurify.sanitize(formattedContent, { USE_PROFILES: { html: true } });
-  finalContent = finalContent.replace(/`([^`\n]+)`/g, (_match, inlineCode) => {
+  const finalContent = formattedContent.replace(/`([^`\n]+)`/g, (_match, inlineCode) => {
     return `<code class="inline-code">${htmlEntities(inlineCode)}</code>`;
   });
-  
-  return finalContent;
+  const finalMarkerContent = marked.parse(finalContent, { async: false });
+  const finalEscapedContent = dompurify.sanitize(finalMarkerContent); 
+  return finalEscapedContent;
 }
