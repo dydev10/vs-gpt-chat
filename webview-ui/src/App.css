@@ -1,70 +1,77 @@
+@import 'tailwindcss';
+
 #root {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  display: flex;
-  min-height: 100%;
-  justify-content: space-between;
+  @apply
+    w-full
+    max-w-[1280px]
+    h-dvh
+    mx-auto
+    p-8
+    text-center
+    flex
+    justify-between
+  ;
 }
 
 .app {
-  display: flex;
-  flex-direction: column;
+  @apply
+    flex
+    flex-col
+    h-full
+    w-full
+  ;
 }
 
 
 code.inline-code {
-  display: inline;
-  background-color: #f1f1f1;
-  color: black;
-  padding: 2px;
-  border-radius: 2px;
-  font-family: monospace;
-  white-space: pre-wrap;
-  font-weight: 600;
+  @apply
+    inline
+    bg-gray-100
+    text-gray-900
+    px-0.5
+    rounded-xs
+    font-mono
+    whitespace-pre-wrap
+    font-semibold
+  ;
 }
 
 pre .code-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: darkslategrey;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 5px;
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-  font-family: monospace;
-  font-size: 0.75rem;
-  font-weight: bold;
-  white-space: pre-wrap;
+  @apply
+    flex  
+    justify-between  
+    items-center  
+    bg-gray-700
+    text-white  
+    px-2  
+    py-0.5  
+    rounded-t-md  
+    font-mono  
+    text-xs  
+    font-bold  
+    whitespace-pre-wrap
+  ;  
 }
 
 pre .code-language {
-  color: lightcoral;
+  @apply
+    text-rose-400
+  ;
 }
 
 pre .copy-button {
-  background-color: lightskyblue;
-  color: black;
-  padding: 2px;
+  @apply
+    bg-sky-300
+    text-black
+    p-0.5
+  ;
 }
 
 pre code {
-  position: relative;
-	display: block;
-  /* background-color: #282c34; */
-  /* color: #abb2bf; */
-  /* padding: 8px; */
-  /* border-radius: 5px;
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px; */
-  /* font-family: monospace; */
-  /* font-size: 0.75rem;
-  white-space: pre-wrap;
-  text-align: left; */
+  @apply
+    relative
+    block
+  ;
 }
 
 pre {
