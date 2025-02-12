@@ -1,3 +1,6 @@
+@import 'prismjs/themes/prism-tomorrow.css';
+@import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
