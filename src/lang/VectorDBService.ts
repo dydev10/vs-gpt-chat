@@ -1,4 +1,4 @@
-import { DataAPIClient, Db } from "@datastax/astra-db-ts";
+import { DataAPIClient, Db, SomeDoc } from "@datastax/astra-db-ts";
 
 export type SimilarityMetric = 'dot_product' | 'cosine' | 'euclidean';
 
@@ -72,6 +72,29 @@ class VectorDBService {
       return resp.insertedId;
     } catch (error) {
       throw new Error('VectorDBService:: Error:: writeChunkEmbeddings :: Failed write to db!');
+    }
+  };
+
+  findVectorDocs = async (vector: number[]) => {
+    try {
+      const collection = await this.getCollection();
+      const cursor = collection.find({}, {
+        sort: {
+          $vector: vector,
+        },
+        limit: 10,
+      });
+
+      const docs = await cursor.toArray();
+      const docsMap = docs.map((doc: SomeDoc) => doc.text); 
+      
+      console.info('VectorDBService:: Found vector docs from DB:', docsMap);
+      return docsMap;
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.stack);
+      }
+      throw new Error('VectorDBService:: Error:: findChunkEmbeddings :: Failed query for chunk embeddings!');
     }
   };
 }

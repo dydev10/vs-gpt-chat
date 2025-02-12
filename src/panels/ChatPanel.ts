@@ -176,7 +176,7 @@ export class ChatPanel {
             let responseText = '';
 
             try {
-              const streamResponse = await ChatPanel.currentLLM.chat(userPrompt);
+              const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
               let started = false;
   
               for await (const part of streamResponse) {
