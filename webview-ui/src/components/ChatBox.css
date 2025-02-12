@@ -61,7 +61,8 @@
     p-4
     inline-block
     text-left
-    rounded-sm
+    rounded-lg
+    rounded-bl-xs
   ;
 }
 
