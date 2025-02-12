@@ -14,6 +14,8 @@ export default defineConfig({
     }),
     analyzer({
       openAnalyzer: false,
+      analyzerMode: 'static',
+      fileName: '../.reports/stats',
     }),
   ],
   build: {
