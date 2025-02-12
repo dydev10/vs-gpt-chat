@@ -2,6 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import ollama from 'ollama';
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
+import LangModel from "../lang/LangModel";
 
 /**
  * Comments marked with [HelloWorld] from the HelloWorld webview panels for doc reference
@@ -22,6 +23,7 @@ import { getNonce } from "../utilities/getNonce";
   */
 export class ChatPanel {
   public static currentPanel: ChatPanel | undefined;
+  public static currentLLM: LangModel | undefined;
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
 
@@ -45,6 +47,10 @@ export class ChatPanel {
 
     // Set an event listener to listen for messages passed from the webview context
     this._setWebviewMessageListener(this._panel.webview);
+
+    if(!ChatPanel.currentLLM) {
+      ChatPanel.currentLLM = new LangModel('deepseek-r1:7b');
+    }
   }
 
   /**
@@ -88,6 +94,7 @@ export class ChatPanel {
    */
   public dispose() {
     ChatPanel.currentPanel = undefined;
+    ChatPanel.currentLLM = undefined;
 
     // Dispose of the current webview panel
     this._panel.dispose();
@@ -164,15 +171,13 @@ export class ChatPanel {
           };
           
           case "chat": {
+            if (!ChatPanel.currentLLM) { return; };
+
             const userPrompt = message.text;
             let responseText = '';
 
             try {
-              const streamResponse = await ollama.chat({
-                model: 'deepseek-r1:7b',
-                messages: [{ role: 'user', content: userPrompt }],
-                stream: true,
-              });
+              const streamResponse = await ChatPanel.currentLLM.chat(userPrompt);
               let started = false;
   
               for await (const part of streamResponse) {
@@ -199,5 +204,14 @@ export class ChatPanel {
       undefined,
       this._disposables
     );
+  }
+
+  /**
+   * Setup Language Model
+   * 
+   * call run, set system prompts, setup pipeline
+   */
+  private _setupLLM() {
+
   }
 }
