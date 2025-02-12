@@ -38,6 +38,7 @@
   max-width: 100%;
   padding: 8px;
   display: inline-block;
+  text-align: left;
 }
 .input-container {
   display: flex;

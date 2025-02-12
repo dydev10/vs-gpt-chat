@@ -17,12 +17,13 @@
 
 code.inline-code {
   display: inline;
-  background-color: lightseagreen;
+  background-color: #f1f1f1;
   color: black;
   padding: 2px;
   border-radius: 2px;
   font-family: monospace;
   white-space: pre-wrap;
+  font-weight: 600;
 }
 
 pre .code-header {
@@ -64,4 +65,8 @@ pre code {
   /* font-size: 0.75rem;
   white-space: pre-wrap;
   text-align: left; */
+}
+
+pre {
+  background-color: var(--vscode-textBlockQuote-background, 'black');
 }
