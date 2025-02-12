@@ -26,7 +26,7 @@ const ChatBox: React.FC = () => {
     const bubbleEl = document.createElement("div");
     const bubbleId = bubbleIdByIndex(id, bot);
     bubbleEl.classList.add("message", bot ? "bot": "user");
-    bubbleEl.textContent = text;
+    bubbleEl.innerHTML = text;
     chatBox.appendChild(bubbleEl);
     chatBox.scrollTop = chatBox.scrollHeight;
     bubbleEl.id =  bubbleId;
