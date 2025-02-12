@@ -2,7 +2,7 @@
   "name": "vs-gpt-chat",
   "displayName": "vs-gpt-chat",
   "description": "A basic extension to use LLM models in VS Code",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -30,6 +30,7 @@
     "test": "vscode-test",
     "install:all": "pnpm install && cd webview-ui && pnpm install",
     "start:webview": "cd webview-ui && pnpm run start",
+    "watch:webview": "cd webview-ui && pnpm run watch",
     "build:webview": "cd webview-ui && pnpm run build"
   },
   "devDependencies": {

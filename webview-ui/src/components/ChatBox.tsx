@@ -96,7 +96,7 @@ const ChatBox: React.FC = () => {
       <div className="chat-container">
         <div className="chat-box" id="chat-box"></div>
         <form id="input-container" onSubmit={handleFormSubmit} action="">
-				<textarea onKeyDown={handleKeyDown} autoFocus id="chat-prompt" rows={3} placeholder="Ask ..."></textarea>
+				<textarea onKeyDown={handleKeyDown} autoFocus id="chat-prompt" rows={2} placeholder="Type ..."></textarea>
 				<button type="submit" id="sendBtn">Send</button>
         </form>
       </div>
