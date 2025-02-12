@@ -60,6 +60,20 @@ class VectorDBService {
   getCollection = async (collectionName: string = process.env.ASTRA_DB_COLLECTION as string) => {
     return this.db.collection(collectionName);
   };
+
+  writeChunkEmbeddings = async (vector: number[], chunk: string) => {
+    try {
+      const collection = await this.getCollection();
+      const resp = await collection.insertOne({
+        $vector: vector,
+        text: chunk,
+      });
+      console.info('VectorDBService:: Finished write to DB:', resp.insertedId);
+      return resp.insertedId;
+    } catch (error) {
+      throw new Error('VectorDBService:: Error:: writeChunkEmbeddings :: Failed write to db!');
+    }
+  };
 }
 
 export default VectorDBService;
