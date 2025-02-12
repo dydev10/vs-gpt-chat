@@ -7,7 +7,11 @@ import { Message } from "ollama";
 
 const systemPromptTemplate: (docContext: string, userMessage: string) => Message = (docContext, userMessage) => ({
   role: 'user',
-  content: `You are an AI Assistance who knows everything about Aseprite, a software tool for Pixel art & Animated sprite
+  content: `A conversation between User and Assistant.
+  The user asks a question, and the Assistant solves it.
+  The Assistance first thinks about the reasoning process in the mind and then provides the user with the answer.
+  The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.
+  You are an Assistance who knows everything about Aseprite, a software tool for Pixel art & Animated sprite
   Use the below content to augment what you know about Aseprite.
   The context will provide you with the basic Aseprite api and file format.
   ----------------
