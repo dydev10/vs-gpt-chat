@@ -2,7 +2,7 @@
   "name": "vs-gpt-chat",
   "displayName": "vs-gpt-chat",
   "description": "A basic extension to use LLM models in VS Code",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.96.0"
   },
