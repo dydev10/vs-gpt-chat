@@ -30,6 +30,7 @@
     "test": "vscode-test",
     "install:all": "pnpm install && cd webview-ui && pnpm install",
     "start:webview": "cd webview-ui && pnpm run start",
+    "watch:webview": "cd webview-ui && pnpm run watch",
     "build:webview": "cd webview-ui && pnpm run build"
   },
   "devDependencies": {
