@@ -37,11 +37,14 @@ export const formatMessage = (content: string) => {
     
     // const escapedCode = htmlEntities(highlightedCode);
     // return `<pre class="language-${language} line-numbers" language-${language}><div class="code-header"><span class="code-language">${language}</span><button class="copy-button">Copy</button></div><code class="language-${language}">${highlightedCode}</code></pre>`;
-    return `<pre class="language-${language} line-numbers" language-${language}><code class="language-${language}">${highlightedCode} ${lineNumbersWrapper}</code></pre>`;
+    const preWrappedCode = `<pre class="language-${language} line-numbers" language-${language}><code class="language-${language}">${highlightedCode} ${lineNumbersWrapper}</code></pre>`;
+
+    return preWrappedCode;
   });
   
-  // Format inline code
-  // formattedContent = formattedContent.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
+  // Format inline code, [Handle single backticks `code`]
+  let finalContent = formattedContent;
+  finalContent = formattedContent.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
   
-  return formattedContent;
+  return finalContent;
 }
