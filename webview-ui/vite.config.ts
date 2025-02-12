@@ -1,11 +1,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import prism from 'vite-plugin-prismjs';
-import { analyzer } from 'vite-bundle-analyzer'
+import { analyzer } from 'vite-bundle-analyzer';
+import tailwindcss from '@tailwindcss/vite';
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     prism({
       languages: ['javascript', 'css', 'html', 'typescript'],
       plugins: ['line-numbers'],
