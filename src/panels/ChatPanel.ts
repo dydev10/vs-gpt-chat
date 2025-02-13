@@ -158,33 +158,26 @@ export class ChatPanel {
         let started = false;
 
         for await (const part of streamResponse) {
-          console.log('*** // BOT **: ', part);
-          
-          if (!started) {
-            started = true;
-            this._panel.webview.postMessage({ command: 'chatStart', text: '' });
-          }
-
-          /**
-           * BUGGY: part.model.messages is probably the stream, this is not
-           */
-          // responseText += part.content;
-          // responseText += part.model.messages.content;
-
           // Maybe this await loop will fix no streaming??
           for await (const mPart of part.model.messages) {
-            console.log(mPart);
+            if (!started) {
+              started = true;
+              this._panel.webview.postMessage({ command: 'chatStart', text: '' });
+            }
             responseText += mPart.content;
             this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
           }
 
+          // send stream end event
+          started = false;
+          this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
         }
 
-        // send stream end event
-        started = false;
-        this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
       } catch (error: any) {
-        this._panel.webview.postMessage({ command: 'chatError', text: String(error.message) });
+        console.log('&&   XXxxxxxxx&&&& __________ERROr NOW');
+        console.error(error);
+
+        this._panel.webview.postMessage({ command: 'chatError', text: `${error.message}` });
         window.showErrorMessage('Error while running model', error.message);
       }
       return;
