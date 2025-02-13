@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { vscode } from "../utilities/vscode";
 
-export type ChatRole = 'user' | 'system' | 'assistant';
+export type ChatRole = 'human' | 'AI' | 'system';
 export type ChatMessage = {
   role: ChatRole;
   content: string;

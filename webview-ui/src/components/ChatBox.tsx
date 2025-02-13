@@ -60,7 +60,7 @@ const ChatBox: React.FC = () => {
         
     const bubbleId = createBubble('', id, true);;
     const message : ChatMessage = {
-      role: 'assistant',
+      role: 'AI',
       content: '',
     };
     const historyItem: HistoryItem = {
@@ -105,7 +105,7 @@ const ChatBox: React.FC = () => {
       bubbleId,
       type: 'prompt',
       message: {
-        role: 'user',
+        role: 'human',
         content: text,
       },
     }

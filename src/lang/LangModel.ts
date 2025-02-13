@@ -1,17 +1,34 @@
-import VectorDBService from "./VectorDBService";
-import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
-import VectorEmbedder from "./VectorEmbedder";
-import { Message } from "ollama";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
+import {
+  START,
+  END,
+  MessagesAnnotation,
+  StateGraph,
+  MemorySaver,
+  BinaryOperatorAggregate,
+  Messages,
+  StateDefinition,
+  AnnotationRoot,
+  CompiledStateGraph,
+} from "@langchain/langgraph";
+import VectorEmbedder from "./VectorEmbedder";
+import VectorDBService from "./VectorDBService";
 import LLMChat from "./LLMChat";
 import { sampleUrls } from "./samples";
+import { BaseMessage } from "@langchain/core/messages";
+import { ChatOllama } from "@langchain/ollama";
 
 class LangModel {
   threadId: string;
   docSources: string[];
   modelName: string;
   llmChat: LLMChat;
-  vectorDBService: VectorDBService; 
+  vectorDBService: VectorDBService;
+
+  // workflow
+  app: any;
+  memory: MemorySaver;
 
   constructor(modelName: string = 'deepseek-r1:14b') {
     this.threadId = crypto.randomUUID();    
@@ -19,7 +36,17 @@ class LangModel {
     this.docSources = [...sampleUrls];
 
     this.llmChat = new LLMChat(this.modelName, this.threadId);
-    this.vectorDBService = new VectorDBService();       
+    this.vectorDBService = new VectorDBService();
+    
+    // init workflow
+    const {
+      // workflow,
+      memory,
+      app
+    } = this.setupAppWorkflow();
+
+    this.app = app;
+    this.memory = memory;
   }
 
   getContentVectors = async (getContentVectors: string): Promise<number[][]> => {
@@ -33,6 +60,45 @@ class LangModel {
       }
     );
     return contentVectors;
+  };
+
+  // // Define the method for sending message to chatLLM model
+  // callChatModel = (state: typeof MessagesAnnotation.State) => {
+  //   // const chatStream = this.llmChat.chat(userMessage, docContext);
+  //   const chatStream = this.llmChat.chat(state.messages[0]);
+  //   return chatStream;
+  // };
+
+  setupAppWorkflow = () => {
+    // const llm = this.llmChat.model;
+    const llm = new ChatOllama({
+      baseUrl: 'http://localhost:11434',
+      model:this.modelName,
+      temperature: 0.6,
+    });
+
+    // Define the function that calls the model
+    const callModel = async (state: typeof MessagesAnnotation.State) => {
+      // const response = await llm.invoke(state.messages);
+      const response = await llm.stream(state.messages);
+      return { messages: response };
+    };
+    // Define a new Workflow graph
+    const workflow = new StateGraph(MessagesAnnotation)
+    // Define the node and edge
+    .addNode("model", callModel)
+    .addEdge(START, "model")
+    .addEdge("model", END);
+
+    // Add memory
+    const memory = new MemorySaver();
+    const app = workflow.compile({ checkpointer: memory });
+
+    return {
+      workflow,
+      memory,
+      app
+    };
   };
 
   sendMessage = async (userMessage: string) => {
@@ -50,7 +116,9 @@ class LangModel {
       throw new Error('LangModel:: Error:: sendMessage: Error while fetching vector docs');
     }
 
-    const chatStream = this.llmChat.chat(userMessage, docContext);
+    // const chatStream = this.llmChat.chat(userMessage, docContext);
+    // return chatStream;
+    const chatStream = await this.app.stream({ messages: ['user', userMessage] } , { configurable: { thread_id: this.threadId, streamMode: 'updates' }, streamMode: "updates", });
     return chatStream;
   };
 

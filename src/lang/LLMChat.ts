@@ -10,7 +10,7 @@ export type LLMChatContext = {
 }
 
 export type LLMChatMessage = {
-  role: 'user' | 'assistant' | 'system',
+  role: 'human' | 'AI' | 'system',
   content: string;
   context: LLMChatContext;
 };
