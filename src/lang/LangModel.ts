@@ -41,6 +41,7 @@ class LangModel {
     this.model = new ChatOllama({
       baseUrl: 'http://localhost:11434',
       model:this.modelName,
+      temperature: 0,
     });
 
     this.vectorDBService = new VectorDBService();       
@@ -49,12 +50,13 @@ class LangModel {
   // TODO: fix stream typing to make it arg
   chat = async (userPrompt: string, docContext: string = '') => {
     const systemPrompt = systemPromptTemplate(docContext, userPrompt);
-    const response = await this.model.client.chat({
-      model: this.modelName,
-      // messages: [{ role: 'user', content: userPrompt }],
-      messages: [ systemPrompt, { role: 'user', content: userPrompt }],
-      stream: true,
-    });
+  
+    const response = await this.model.stream(
+      [
+        [systemPrompt.role, systemPrompt.content ],
+        [ 'user', userPrompt],
+      ]
+    );
     return response;
   };
 
@@ -72,7 +74,7 @@ class LangModel {
 
     try {
       for (const vec of messageVectors) {
-        const docs = this.vectorDBService.findVectorDocs(vec);
+        const docs = await this.vectorDBService.findVectorDocs(vec);
         docContext = docContext + JSON.stringify(docs);
       }
     } catch (error) {
