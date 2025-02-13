@@ -152,12 +152,13 @@ class LangModel {
       const embeddings = new VectorEmbedder();
       await embeddings.setup();
       
-      embeddings.createVectorEmbeds(
+      await embeddings.createVectorEmbeds(
         content,
         this.vectorDBService.writeChunkEmbeddings,
       );
     }
 
+    console.log('...Finished loadSampleData');
     return collection;
   };
 }
