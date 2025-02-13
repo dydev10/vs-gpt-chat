@@ -4,11 +4,7 @@ import VectorEmbedder from "./VectorEmbedder";
 import { Message } from "ollama";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import LLMChat from "./LLMChat";
-
-const samplePrompts = [
-  'write a parser for .ase files using typescript',
-  'write a parser for .ase files using typescript. parse ArrayBuffer using specs as reference',
-];
+import { sampleUrls } from "./samples";
 
 class LangModel {
   threadId: string;
@@ -20,15 +16,7 @@ class LangModel {
   constructor(modelName: string = 'deepseek-r1:14b') {
     this.threadId = crypto.randomUUID();    
     this.modelName = modelName;
-    this.docSources = [
-      'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
-      // 'https://www.aseprite.org/api',
-      // 'https://www.aseprite.org/api/app#app',
-      'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/index.js',
-      'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/factories.js',
-      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/aseprite.js',
-      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
-    ];
+    this.docSources = [...sampleUrls];
 
     this.llmChat = new LLMChat(this.modelName, this.threadId);
     this.vectorDBService = new VectorDBService();       
