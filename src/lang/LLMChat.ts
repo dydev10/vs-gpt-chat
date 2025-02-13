@@ -1,9 +1,18 @@
+import { AIMessageChunk } from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { IterableReadableStream } from "@langchain/core/utils/stream";
 import { ChatOllama } from "@langchain/ollama";
+
+
+export type LLMChatContext = {
+  question: string;
+  docContext: string;
+}
 
 export type LLMChatMessage = {
   role: 'user' | 'assistant' | 'system',
   content: string;
+  context: LLMChatContext;
 };
 export type LLMChatHistory = LLMChatMessage[]; 
 
@@ -24,7 +33,7 @@ class LLMChat {
     });
   }
 
-  systemPromptTemplate: (docContext: string, userPrompt: string) => LLMChatMessage = (docContext, userMessage) => ({
+  systemPromptTemplate: (docContext: string, question: string) => LLMChatMessage = (docContext, question) => ({
     role: 'system',
     content: `A conversation between User and Assistant.
     The user asks a question, and the Assistant solves it.
@@ -38,24 +47,30 @@ class LLMChat {
     {docContext}
     END CONTEXT
     ----------------
-    QUESTION: {userPrompt}
+    QUESTION: {question}
     ----------------
     `,
+    context: {
+      question,
+      docContext,
+    }
   });
 
   // TODO: fix stream typing to make it arg
-    chat = async (userPrompt: string, docContext: string = '') => {
-      const systemMessage = this.systemPromptTemplate(docContext, userPrompt);
-    
+    chat = async (question: string, docContext: string = ''): Promise<IterableReadableStream<AIMessageChunk>> => {
+      const systemMessage = this.systemPromptTemplate(docContext, question);
+
+      // systemMessage contains userPrompt as question, so only system Message stored in history is enough
+      this.chatHistory.push(systemMessage);
       const prompt = ChatPromptTemplate.fromMessages([
         [systemMessage.role, systemMessage.content ],
-        [ 'user', userPrompt],
+        [ 'user', question],
       ]);
   
       const chain = prompt.pipe(this.model);
       const response = await chain.stream({
         docContext,
-        userPrompt,
+        question,
       });
       return response;
     };
