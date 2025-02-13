@@ -11,12 +11,14 @@ const samplePrompts = [
 ];
 
 class LangModel {
+  threadId: string;
   docSources: string[];
   modelName: string;
   llmChat: LLMChat;
   vectorDBService: VectorDBService; 
 
   constructor(modelName: string = 'deepseek-r1:14b') {
+    this.threadId = crypto.randomUUID();    
     this.modelName = modelName;
     this.docSources = [
       'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
@@ -28,7 +30,7 @@ class LangModel {
       'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
     ];
 
-    this.llmChat = new LLMChat(this.modelName);
+    this.llmChat = new LLMChat(this.modelName, this.threadId);
     this.vectorDBService = new VectorDBService();       
   }
 

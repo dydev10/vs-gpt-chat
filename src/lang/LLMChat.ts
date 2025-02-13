@@ -18,19 +18,24 @@ export type LLMChatHistory = LLMChatMessage[];
 
 // TODO: make this class streamable(use with prompt.pipe()) like langchain classes
 class LLMChat {
+  abortController: AbortController;
   modelName: string;
+  threadId: string;
   model: ChatOllama;
   chatHistory: LLMChatHistory;
   // vectorDBService: VectorDBService; 
 
-  constructor(modelName: string) {
+  constructor(modelName: string, threadId: string = crypto.randomUUID()) {
     this.modelName = modelName;
+    this.threadId = threadId;
     this.chatHistory = [];
     this.model = new ChatOllama({
       baseUrl: 'http://localhost:11434',
       model:this.modelName,
       temperature: 0.6,
     });
+
+    this.abortController = new AbortController();
   }
 
   systemPromptTemplate: (docContext: string, question: string) => LLMChatMessage = (docContext, question) => ({
@@ -66,12 +71,23 @@ class LLMChat {
         [systemMessage.role, systemMessage.content ],
         [ 'user', question],
       ]);
+
+      console.log('THREAD ID', this.threadId);
+      
   
       const chain = prompt.pipe(this.model);
-      const response = await chain.stream({
-        docContext,
-        question,
-      });
+      const response = await chain.stream(
+        {
+          docContext,
+          question,
+        },
+        {
+          signal: this.abortController.signal,
+          configurable: {
+            threadId: this.threadId,
+          }
+        }
+      );
       return response;
     };
 }
