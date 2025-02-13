@@ -1,12 +1,20 @@
 import { useCallback, useEffect } from "react";
 import { vscode } from "../utilities/vscode";
 
+export type ChatRole = 'user' | 'system' | 'assistant';
+export type ChatMessage = {
+  role: ChatRole;
+  content: string;
+};
+
 const useChat = (
   onMessage?: (text: string) => void,
   onMessageStart?: () => void,
   onMessageEnd?: () => void,
 ) => {
-  const sendChat = (text: string) => {
+  const sendChat = (text: string, history: ChatMessage[] = []) => {
+    console.log("...Messages History[]:", history);
+
     vscode.postMessage({ command: 'chat', text });
   }
 

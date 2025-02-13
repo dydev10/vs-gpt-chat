@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react'
 import './ChatBox.css';
-import useChat from '../hooks/useChat';
+import useChat, { ChatMessage } from '../hooks/useChat';
 import useForm from '../hooks/useForm';
 import { formatMessage } from '../utilities/parse';
 
@@ -10,12 +10,6 @@ type HistoryItem = {
   text: string;
   bubbleId: string;
   message: ChatMessage;
-};
-
-export type ChatRole = 'user' | 'system' | 'assistant';
-type ChatMessage = {
-  role: ChatRole;
-  content: string;
 };
 
 const ChatBox: React.FC = () => {
@@ -99,7 +93,10 @@ const ChatBox: React.FC = () => {
  const handlePrompt = useCallback((text: string) => {
    const id = promptId === null ? 0 : promptId + 1;
    const bubbleId = createBubble(text, id, false);
-   sendChat(text);
+   
+   const history = chatHistory.map(item => item.message);
+   sendChat(text, history);
+
    setPromptId(id);
    setChatHistory((history) => [
     ...history,
@@ -113,7 +110,7 @@ const ChatBox: React.FC = () => {
       },
     }
   ]);
- }, [sendChat, promptId, createBubble]);
+ }, [sendChat, promptId, chatHistory, createBubble]);
   const { handleKeyDown , handleFormSubmit} = useForm('chat-prompt', handlePrompt);
 
   return (
