@@ -147,6 +147,36 @@ export class ChatPanel {
     `;
   }
 
+  private async handleChatMessageChunk(message: { command: string, text: string }) {
+    if (!ChatPanel.currentLLM) { return; };
+
+      const userPrompt = message.text;
+      let responseText = '';
+
+      try {
+        const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
+        let started = false;
+
+        for await (const part of streamResponse) {
+          if (!started) {
+            started = true;
+            this._panel.webview.postMessage({ command: 'chatStart', text: '' });
+          }
+
+          responseText += part.content;
+          this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
+        }
+
+        // send stream end event
+        started = false;
+        this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
+      } catch (error: any) {
+        this._panel.webview.postMessage({ command: 'chatError', text: String(error.message) });
+        window.showErrorMessage('Error while running model', error.message);
+      }
+      return;
+  }
+
   /**
    * [HelloWorld]
    * 
@@ -170,33 +200,7 @@ export class ChatPanel {
           };
           
           case "chat": {
-            if (!ChatPanel.currentLLM) { return; };
-
-            const userPrompt = message.text;
-            let responseText = '';
-
-            try {
-              const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
-              let started = false;
-  
-              for await (const part of streamResponse) {
-                if (!started) {
-                  started = true;
-                  this._panel.webview.postMessage({ command: 'chatStart', text: '' });
-                }
-
-                responseText += part.content;
-                this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
-              }
-
-              // send stream end event
-              started = false;
-              this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
-            } catch (error: any) {
-              this._panel.webview.postMessage({ command: 'chatError', text: String(error.message) });
-              window.showErrorMessage('Error while running model', error.message);
-            }
-            return;
+            await this.handleChatMessageChunk(message);
           };
         }
       },
