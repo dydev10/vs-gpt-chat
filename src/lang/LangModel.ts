@@ -30,7 +30,7 @@ class LangModel {
   model: ChatOllama;
   vectorDBService: VectorDBService; 
 
-  constructor(modelName: string = 'deepseek-r1:7b') {
+  constructor(modelName: string = 'deepseek-r1:14b') {
     this.modelName = modelName;
     this.docSources = [
       'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
@@ -40,7 +40,7 @@ class LangModel {
 
     this.model = new ChatOllama({
       baseUrl: 'http://localhost:11434',
-      model: 'deepseek-r1:7b',
+      model:this.modelName,
     });
 
     this.vectorDBService = new VectorDBService();       
