@@ -43,27 +43,31 @@ class VectorEmbedder {
     });
   };
 
-  createVectorEmbeds = async (content: string, onChunk: (vector: number[], chunk: string) => Promise<void | SomeId>) => {
+  createVectorEmbeds = async (content: string, onChunk: (vector: number[], chunk: string) => Promise<void | SomeId>): Promise<number[][]> => {
     if (!this.ready) {
       throw new Error('Too soon. Still PULLING embeddings');
     }
+
+    const vectorEmbeds = [];
     const chunks = await this.splitter.splitText(content);
 
-
-    for await (const chunk of chunks) {        
+    for await (const chunk of chunks) {    
       try {
         const vector = await this.embeddings.embedQuery(chunk);
         console.log('Vectors length from embed', vector.length);
+        vectorEmbeds.push(vector);
 
-        await onChunk(vector, chunk);
-        console.log('...Done vector callback exec');
+        // sideEffect
+        await onChunk(vector, chunk);        
       } catch (error) {
         console.log('...xxxOHno vector', error);
         throw error;
       }
     }
+    
+    // async awaited aggregated res
+    return vectorEmbeds;
   };
-
 }
 
 export default VectorEmbedder;

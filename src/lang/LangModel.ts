@@ -30,10 +30,17 @@ const systemPromptTemplate: (docContext: string, userPrompt: string) => Message 
   `,
 });
 
+export type ServerMessage = {
+  role: 'user' | 'assistant' | 'system',
+  content: string;
+};
+export type ServerMessageHistory = ServerMessage[]; 
+
 class LangModel {
   docSources: string[];
   modelName: string;
   model: ChatOllama;
+  serverMessageHistory: ServerMessageHistory;
   vectorDBService: VectorDBService; 
 
   constructor(modelName: string = 'deepseek-r1:14b') {
@@ -48,12 +55,12 @@ class LangModel {
       'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
     ];
 
+    this.serverMessageHistory = [];
     this.model = new ChatOllama({
       baseUrl: 'http://localhost:11434',
       model:this.modelName,
       temperature: 0.6,
     });
-
     this.vectorDBService = new VectorDBService();       
   }
 
@@ -74,20 +81,26 @@ class LangModel {
     return response;
   };
 
-  sendMessage = async (userMessage: string) => {
-    let docContext = "";
-    let messageVectors: number[][] = [];
+  getContentVectors = async (getContentVectors: string): Promise<number[][]> => {
+    let contentVectors: number[][] = [];
     const embeddings = new VectorEmbedder();
     await embeddings.setup();
     await embeddings.createVectorEmbeds(
-      userMessage,
+      getContentVectors,
       async (vector, _chunk) => {
-        messageVectors.push(vector);
+        contentVectors.push(vector);
       }
     );
+    return contentVectors;
+  };
 
+  sendMessage = async (userMessage: string) => {
+    let docContext = "";
+    const contentVectors = await this.getContentVectors(userMessage);
+    console.log('!!!Done getContentVectors', contentVectors);
+    
     try {
-      for (const vec of messageVectors) {
+      for (const vec of contentVectors) {
         const docs = await this.vectorDBService.findVectorDocs(vec);
         docContext = docContext + JSON.stringify(docs);
       }
