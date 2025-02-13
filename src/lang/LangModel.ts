@@ -118,7 +118,7 @@ class LangModel {
 
     // const chatStream = this.llmChat.chat(userMessage, docContext);
     // return chatStream;
-    const chatStream = await this.app.stream({ messages: ['user', userMessage] } , { configurable: { thread_id: this.threadId, streamMode: 'updates' }, streamMode: "updates", });
+    const chatStream = await this.app.stream({ messages: [{ role: 'human', content: userMessage }] } , { configurable: { thread_id: this.threadId } });
     return chatStream;
   };
 

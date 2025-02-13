@@ -69,7 +69,7 @@ class LLMChat {
       this.chatHistory.push(systemMessage);
       const prompt = ChatPromptTemplate.fromMessages([
         [systemMessage.role, systemMessage.content ],
-        [ 'user', question],
+        [ 'human', question],
       ]);
 
       console.log('THREAD ID', this.threadId);
