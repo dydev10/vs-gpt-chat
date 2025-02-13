@@ -1,95 +1,119 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import './ChatBox.css';
 import useChat from '../hooks/useChat';
 import useForm from '../hooks/useForm';
 import { formatMessage } from '../utilities/parse';
 
+type HistoryItemType = 'prompt' | 'response';
 type HistoryItem = {
+  type: HistoryItemType;
   text: string;
-  type: string;
   bubbleId: string;
+  message: ChatMessage;
 };
 
-export const bubbleIdByIndex = (index: number, bot: boolean = false) => {
-  return `${index}${bot ? '' : '-user'}`;
-}
+export type ChatRole = 'user' | 'system' | 'assistant';
+type ChatMessage = {
+  role: ChatRole;
+  content: string;
+};
 
 const ChatBox: React.FC = () => {
   const [promptId, setPromptId] = useState<number|null>(null);
   const [responseId, setResponseId] = useState<number|null>(null);
   const [chatHistory, setChatHistory] = useState<HistoryItem[]>([]);
+  const responseItem = useRef<HistoryItem | null>(null);
 
-  console.log(chatHistory);
+  console.log("Full History: ", chatHistory);
 
-  const createBubble = (text: string, id: number, bot: boolean = false): string => {
+  const createBubble = useCallback((text: string, id: number, bot: boolean = false): string => {
     const chatBox = document.getElementById("chat-box") as HTMLElement;
     const bubbleEl = document.createElement("div");
     const bubbleId = bubbleIdByIndex(id, bot);
-    bubbleEl.classList.add("message", "prose", bot ? "bot": "user");
+    
+    bubbleEl.id =  bubbleId;
     bubbleEl.innerHTML = text;
+    bubbleEl.classList.add("message", "prose", bot ? "bot": "user");
+    
     chatBox.appendChild(bubbleEl);
     chatBox.scrollTop = chatBox.scrollHeight;
-    bubbleEl.id =  bubbleId;
 
     return bubbleId;
-  }
+  }, []);
 
-  const updateBubble = (id: number, text: string) => {
+  const updateBubble = useCallback((id: number, text: string) => {
     const chatBox = document.getElementById("chat-box") as HTMLElement;
     const bubbleEl = document.getElementById(bubbleIdByIndex(id, true)) as HTMLElement;
    
     bubbleEl.innerHTML = text;
     chatBox.scrollTop = chatBox.scrollHeight;
-  }
+  }, []);
 
-  const getBubble = (id: number, bot: boolean = false) => {
-    const bubbleEl = document.getElementById(bubbleIdByIndex(id, bot)) as HTMLElement;
-    return {
-      content: bubbleEl.innerHTML,
-      id: bubbleEl.id,
-    }
+  const bubbleIdByIndex = (index: number, bot: boolean = false) => {
+    return `${bot ? 'bot-' : 'user-'}${index}`;
   }
 
 
-  const handleMessage = useCallback((text: string) => {
+  const handleMessageChunk = useCallback((text: string) => {
     if (responseId !== null) {
       updateBubble(responseId, formatMessage(text));
     }
-  }, [responseId]);
+  }, [responseId, updateBubble]);
 
   const handleMessageStart = useCallback(() => {
     const id = responseId === null ? 0 : responseId + 1;
-    
-    createBubble('', id, true);;
-    
     setResponseId(id);
-  }, [responseId]);
+        
+    const bubbleId = createBubble('', id, true);;
+    const message : ChatMessage = {
+      role: 'assistant',
+      content: '',
+    };
+    const historyItem: HistoryItem = {
+      message,
+      type: 'response',
+      text: '',
+      bubbleId,
+    };
+
+    responseItem.current = historyItem ;
+  }, [responseId, createBubble]);
 
   const handleMessageEnd = useCallback(() => {
-    // setResponseId(null);
-    if (responseId !== null) {
-      const bubble = getBubble(responseId, true);
+    const item = responseItem.current;
+    responseItem.current = null;
+
+    if (responseId !== null && item !== null) {
        setChatHistory((history) => [
         ...history,
-        { text: bubble.content,
-          bubbleId: bubble.id,
-          type: 'prompt',}
-      ])
+        item,
+      ]);
     }
   }, [responseId]);
 
   /**
    * hooks
   */
- const { sendChat } = useChat(handleMessage, handleMessageStart, handleMessageEnd);
+ const { sendChat } = useChat(handleMessageChunk, handleMessageStart, handleMessageEnd);
  
  const handlePrompt = useCallback((text: string) => {
    const id = promptId === null ? 0 : promptId + 1;
    const bubbleId = createBubble(text, id, false);
    sendChat(text);
    setPromptId(id);
-   setChatHistory((history) => [...history, { text, bubbleId, type: 'prompt',}])
- }, [sendChat, promptId]);
+   setChatHistory((history) => [
+    ...history,
+    {
+      text,
+      bubbleId,
+      type: 'prompt',
+      message: {
+        role: 'user',
+        content: text,
+      },
+    }
+  ]);
+ }, [sendChat, promptId, createBubble]);
   const { handleKeyDown , handleFormSubmit} = useForm('chat-prompt', handlePrompt);
 
   return (
