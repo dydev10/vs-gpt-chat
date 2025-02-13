@@ -53,7 +53,7 @@ class VectorDBService {
       return conn;
       
     } else {
-      throw new Error('No Collection name defined in .env file')
+      throw new Error('No Collection name defined in .env file');
     }
   };
 
@@ -88,7 +88,7 @@ class VectorDBService {
       const docs = await cursor.toArray();
       const docsMap = docs.map((doc: SomeDoc) => doc.text); 
       
-      console.info('VectorDBService:: Found vector docs from DB:', docsMap);
+      console.info('VectorDBService:: Found vector docs.length from DB:', docsMap.length);
       return docsMap;
     } catch (error) {
       if (error instanceof Error) {

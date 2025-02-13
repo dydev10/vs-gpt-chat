@@ -185,7 +185,7 @@ export class ChatPanel {
                   this._panel.webview.postMessage({ command: 'chatStart', text: '' });
                 }
 
-                responseText += part.message.content;
+                responseText += part.content;
                 this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
               }
 

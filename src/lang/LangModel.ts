@@ -4,18 +4,28 @@ import VectorDBService from "./VectorDBService";
 import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
 import VectorEmbedder from "./VectorEmbedder";
 import { Message } from "ollama";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const systemPromptTemplate: (docContext: string, userMessage: string) => Message = (docContext, userMessage) => ({
+const samplePrompts = [
+  'write a parser for .ase files using typescript',
+  'write a parser for .ase files using typescript. parse ArrayBuffer using specs as reference',
+];
+
+const systemPromptTemplate: (docContext: string, userPrompt: string) => Message = (docContext, userMessage) => ({
   role: 'user',
-  content: `You are an AI Assistance who knows everything about Aseprite, a software tool for Pixel art & Animated sprite
+  content: `A conversation between User and Assistant.
+  The user asks a question, and the Assistant solves it.
+  The Assistance first thinks about the reasoning process in the mind and then provides the user with the answer.
+  The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.
+  You are an Assistance who knows everything about Aseprite, a software tool for Pixel art & Animated sprite
   Use the below content to augment what you know about Aseprite.
   The context will provide you with the basic Aseprite api and file format.
   ----------------
   START CONTEXT
-  ${docContext}
+  {docContext}
   END CONTEXT
   ----------------
-  QUESTION: ${userMessage}
+  QUESTION: {userPrompt}
   ----------------
   `,
 });
@@ -26,17 +36,22 @@ class LangModel {
   model: ChatOllama;
   vectorDBService: VectorDBService; 
 
-  constructor(modelName: string = 'deepseek-r1:7b') {
+  constructor(modelName: string = 'deepseek-r1:14b') {
     this.modelName = modelName;
     this.docSources = [
       'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
       'https://www.aseprite.org/api',
       'https://www.aseprite.org/api/app#app',
+      'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/index.js',
+      'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/factories.js',
+      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/aseprite.js',
+      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
     ];
 
     this.model = new ChatOllama({
       baseUrl: 'http://localhost:11434',
-      model: 'deepseek-r1:7b',
+      model:this.modelName,
+      temperature: 0,
     });
 
     this.vectorDBService = new VectorDBService();       
@@ -44,12 +59,17 @@ class LangModel {
 
   // TODO: fix stream typing to make it arg
   chat = async (userPrompt: string, docContext: string = '') => {
-    const systemPrompt = systemPromptTemplate(docContext, userPrompt);
-    const response = await this.model.client.chat({
-      model: this.modelName,
-      // messages: [{ role: 'user', content: userPrompt }],
-      messages: [ systemPrompt, { role: 'user', content: userPrompt }],
-      stream: true,
+    const systemMessage = systemPromptTemplate(docContext, userPrompt);
+  
+    const prompt = ChatPromptTemplate.fromMessages([
+      [systemMessage.role, systemMessage.content ],
+      [ 'user', userPrompt],
+    ]);
+
+    const chain = prompt.pipe(this.model);
+    const response = await chain.stream({
+      docContext,
+      userPrompt,
     });
     return response;
   };
@@ -68,7 +88,7 @@ class LangModel {
 
     try {
       for (const vec of messageVectors) {
-        const docs = this.vectorDBService.findVectorDocs(vec);
+        const docs = await this.vectorDBService.findVectorDocs(vec);
         docContext = docContext + JSON.stringify(docs);
       }
     } catch (error) {
