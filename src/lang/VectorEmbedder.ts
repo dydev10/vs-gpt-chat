@@ -13,8 +13,10 @@ class VectorEmbedder {
     
     this.ready = false;
     this.splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 512,
-      chunkOverlap: 100,
+      // chunkSize: 512,
+      // chunkOverlap: 100,
+      chunkSize: 1000,
+      chunkOverlap: 200,
     });
     this.embeddings = new OllamaEmbeddings({
       baseUrl: 'http://localhost:11434',
