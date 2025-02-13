@@ -82,7 +82,7 @@ class VectorDBService {
         sort: {
           $vector: vector,
         },
-        limit: 50,
+        limit: 10,
       });
 
       const docs = await cursor.toArray();
