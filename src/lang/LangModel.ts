@@ -1,10 +1,9 @@
-import { ChatOllama, OllamaEmbeddings } from "@langchain/ollama";
-// import { PromptTemplate } from '@langchain/core/prompts';
 import VectorDBService from "./VectorDBService";
 import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
 import VectorEmbedder from "./VectorEmbedder";
 import { Message } from "ollama";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import LLMChat from "./LLMChat";
 
 const samplePrompts = [
   'write a parser for .ase files using typescript',
@@ -30,17 +29,12 @@ const systemPromptTemplate: (docContext: string, userPrompt: string) => Message 
   `,
 });
 
-export type ServerMessage = {
-  role: 'user' | 'assistant' | 'system',
-  content: string;
-};
-export type ServerMessageHistory = ServerMessage[]; 
+
 
 class LangModel {
   docSources: string[];
   modelName: string;
-  model: ChatOllama;
-  serverMessageHistory: ServerMessageHistory;
+  llmChat: LLMChat;
   vectorDBService: VectorDBService; 
 
   constructor(modelName: string = 'deepseek-r1:14b') {
@@ -55,12 +49,7 @@ class LangModel {
       'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
     ];
 
-    this.serverMessageHistory = [];
-    this.model = new ChatOllama({
-      baseUrl: 'http://localhost:11434',
-      model:this.modelName,
-      temperature: 0.6,
-    });
+    this.llmChat = new LLMChat(this.modelName);
     this.vectorDBService = new VectorDBService();       
   }
 
@@ -73,7 +62,7 @@ class LangModel {
       [ 'user', userPrompt],
     ]);
 
-    const chain = prompt.pipe(this.model);
+    const chain = prompt.pipe(this.llmChat.model);
     const response = await chain.stream({
       docContext,
       userPrompt,
