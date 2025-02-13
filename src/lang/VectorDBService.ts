@@ -53,7 +53,7 @@ class VectorDBService {
       return conn;
       
     } else {
-      throw new Error('No Collection name defined in .env file')
+      throw new Error('No Collection name defined in .env file');
     }
   };
 
