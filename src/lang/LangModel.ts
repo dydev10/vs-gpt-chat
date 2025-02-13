@@ -4,8 +4,9 @@ import VectorDBService from "./VectorDBService";
 import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
 import VectorEmbedder from "./VectorEmbedder";
 import { Message } from "ollama";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-const systemPromptTemplate: (docContext: string, userMessage: string) => Message = (docContext, userMessage) => ({
+const systemPromptTemplate: (docContext: string, userPrompt: string) => Message = (docContext, userMessage) => ({
   role: 'user',
   content: `A conversation between User and Assistant.
   The user asks a question, and the Assistant solves it.
@@ -16,10 +17,10 @@ const systemPromptTemplate: (docContext: string, userMessage: string) => Message
   The context will provide you with the basic Aseprite api and file format.
   ----------------
   START CONTEXT
-  ${docContext}
+  {docContext}
   END CONTEXT
   ----------------
-  QUESTION: ${userMessage}
+  QUESTION: {userPrompt}
   ----------------
   `,
 });
@@ -36,6 +37,7 @@ class LangModel {
       'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
       'https://www.aseprite.org/api',
       'https://www.aseprite.org/api/app#app',
+      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/aseprite.js',
     ];
 
     this.model = new ChatOllama({
@@ -49,14 +51,18 @@ class LangModel {
 
   // TODO: fix stream typing to make it arg
   chat = async (userPrompt: string, docContext: string = '') => {
-    const systemPrompt = systemPromptTemplate(docContext, userPrompt);
+    const systemMessage = systemPromptTemplate(docContext, userPrompt);
   
-    const response = await this.model.stream(
-      [
-        [systemPrompt.role, systemPrompt.content ],
-        [ 'user', userPrompt],
-      ]
-    );
+    const prompt = ChatPromptTemplate.fromMessages([
+      [systemMessage.role, systemMessage.content ],
+      [ 'user', userPrompt],
+    ]);
+
+    const chain = prompt.pipe(this.model);
+    const response = await chain.stream({
+      docContext,
+      userPrompt,
+    });
     return response;
   };
 
