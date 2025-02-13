@@ -40,8 +40,8 @@ class LangModel {
     this.modelName = modelName;
     this.docSources = [
       'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
-      'https://www.aseprite.org/api',
-      'https://www.aseprite.org/api/app#app',
+      // 'https://www.aseprite.org/api',
+      // 'https://www.aseprite.org/api/app#app',
       'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/index.js',
       'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/factories.js',
       'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/aseprite.js',
@@ -51,7 +51,7 @@ class LangModel {
     this.model = new ChatOllama({
       baseUrl: 'http://localhost:11434',
       model:this.modelName,
-      temperature: 0,
+      temperature: 0.6,
     });
 
     this.vectorDBService = new VectorDBService();       
@@ -122,7 +122,7 @@ class LangModel {
 
     const scrapped = await loader.scrape();
     const strippedScrap = scrapped.replace(/<[^>]*>?/gm, '');
-    console.log(':--: Scrapped!');
+    console.log(':--: Scrapped!', url);
 
     // TODO: only keeps text content, change regex to include html and code
     return strippedScrap;
