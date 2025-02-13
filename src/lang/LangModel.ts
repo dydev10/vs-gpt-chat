@@ -9,7 +9,7 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 const samplePrompts = [
   'write a parser for .ase files using typescript',
   'write a parser for .ase files using typescript. parse ArrayBuffer using specs as reference',
-]
+];
 
 const systemPromptTemplate: (docContext: string, userPrompt: string) => Message = (docContext, userMessage) => ({
   role: 'user',
