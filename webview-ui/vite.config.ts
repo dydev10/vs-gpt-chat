@@ -10,7 +10,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     prism({
-      languages: ['javascript', 'css', 'html', 'typescript'],
+      languages: ['javascript', 'css', 'html', 'typescript', 'jsx', 'tsx'],
       plugins: ['line-numbers'],
       theme: 'tomorrow',
       css: true,
