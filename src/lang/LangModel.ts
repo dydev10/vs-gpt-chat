@@ -177,7 +177,10 @@ class LangModel {
       
       await embeddings.createVectorEmbeds(
         content,
-        this.vectorDBService.writeChunkEmbeddings,
+        async (vector, chunk) => {
+          const insertId = await this.vectorDBService.writeChunkEmbeddings(vector, chunk);
+          console.log('Success DB write vectors:', insertId);
+        }
       );
     }
 
