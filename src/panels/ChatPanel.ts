@@ -2,6 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import LangModel from "../lang/LangModel";
+import { streamGraph } from "../rag/retrievalGen";
 
 /**
  * Comments marked with [HelloWorld] from the HelloWorld webview panels for doc reference
@@ -206,7 +207,27 @@ export class ChatPanel {
           };
           
           case "chat": {
-            await this.handleChatMessageChunk(message);
+            const question = message.text;
+            let responseText = '';
+            // await this.handleChatMessageChunk(message);
+
+            console.log("Skipping chats");
+            const graphStream = await streamGraph(question);
+            let started = false;
+            for await (const [message, _metadata] of graphStream) {
+              process.stdout.write(message.content + "|");
+              
+              if (!started) {
+                started = true;
+                this._panel.webview.postMessage({ command: 'chatStart', text: '' });
+              }
+              responseText += message.content;
+              this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
+            }
+            // send stream end event
+            started = false;
+            this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
+            console.log('resS End', graphStream);
           };
         }
       },

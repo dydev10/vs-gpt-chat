@@ -1,4 +1,4 @@
-import { DataAPIClient, Db, SomeId } from "@datastax/astra-db-ts";
+import { SomeId } from "@datastax/astra-db-ts";
 import { OllamaEmbeddings } from "@langchain/ollama";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
