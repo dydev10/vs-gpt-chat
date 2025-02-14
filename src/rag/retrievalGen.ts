@@ -19,6 +19,17 @@ const StateAnnotation = Annotation.Root({
   answer: Annotation<string>,
 });
 
+const template = `Use the following pieces of context to answer the question at the end.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Use three sentences maximum and keep the answer as concise as possible.
+Always say "thanks for asking!" at the end of the answer.
+
+{context}
+
+Question: {question}
+
+Helpful Answer:`;
+
 export const pullingTemplate = async () => {
   return await pull<ChatPromptTemplate>("rlm/rag-prompt");
 };
@@ -44,9 +55,12 @@ const retrieve = async (state: typeof InputStateAnnotation.State) => {
 };
 
 const generate = async (state: typeof StateAnnotation.State) => {
-  const promptTemplate = await pullingTemplate();
+  // const promptTemplate = await pullingTemplate();
+  const promptTemplateCustom = ChatPromptTemplate.fromMessages([
+    ["user", template],
+  ]);;
   const docsContent = state.context.map((doc) => doc.pageContent).join("\n");
-  const messages = await promptTemplate.invoke({
+  const messages = await promptTemplateCustom.invoke({
     question: state.question,
     context: docsContent,
   });
@@ -71,18 +85,18 @@ export const invokeGraph = async () => {
 };
 
 
-// export const streamGraph = async () => {
-//   let inputs = { question: "What is Task Decomposition?" };
+export const streamGraphSteps = async () => {
+  let inputs = { question: "What is Task Decomposition?" };
 
-//   console.log(inputs);
-//   console.log("\n====\n");
-//   for await (const chunk of await graph.stream(inputs, {
-//     streamMode: "updates",
-//   })) {
-//     console.log(chunk);
-//     console.log("\n====\n");
-//   }
-// };
+  console.log(inputs);
+  console.log("\n====\n");
+  for await (const stepChunk of await graph.stream(inputs, {
+    streamMode: "updates",
+  })) {
+    console.log(stepChunk);
+    console.log("\n====\n");
+  }
+};
 
 export const streamGraph = async (question: string) => {
   // let inputs = { question: "What is Task Decomposition?" };

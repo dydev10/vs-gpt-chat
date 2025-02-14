@@ -6,7 +6,7 @@ import { vectorStore } from "./ragApp";
 
 // step2
 // export default async (): Document<Record<string, any>>[] => {
-export const docLoading =  async (): Promise<Document[]> => {
+const docLoading =  async (): Promise<Document[]> => {
   const pTagSelector = "p";
   const cheerioLoader = new CheerioWebBaseLoader(
     "https://lilianweng.github.io/posts/2023-06-23-agent/",
@@ -24,7 +24,7 @@ export const docLoading =  async (): Promise<Document[]> => {
 };
 
 // step2
-export const textSplitting = async (docs: Document[]): Promise<Document[]> => {
+const textSplitting = async (docs: Document[]): Promise<Document[]> => {
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,
     chunkOverlap: 200,
@@ -36,6 +36,14 @@ export const textSplitting = async (docs: Document[]): Promise<Document[]> => {
 };
 
 // step3
-export const docStoring =  async (allSplits: Document[]) => {
+const docStoring =  async (allSplits: Document[]) => {
   await vectorStore.addDocuments(allSplits);
+};
+
+export const docIndexing = async () => {
+  return await docStoring(
+    await textSplitting(
+      await docLoading()
+    )
+  );
 };

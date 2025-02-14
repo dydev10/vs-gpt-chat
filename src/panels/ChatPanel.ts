@@ -215,7 +215,7 @@ export class ChatPanel {
             const graphStream = await streamGraph(question);
             let started = false;
             for await (const [message, _metadata] of graphStream) {
-              process.stdout.write(message.content + "|");
+              // process.stdout.write(message.content + "|");
               
               if (!started) {
                 started = true;
@@ -227,7 +227,7 @@ export class ChatPanel {
             // send stream end event
             started = false;
             this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
-            console.log('resS End', graphStream);
+            console.log('graphStream ...End');
           };
         }
       },

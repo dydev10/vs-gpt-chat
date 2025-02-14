@@ -32,7 +32,8 @@
     "start:webview": "cd webview-ui && pnpm run start",
     "watch:webview": "cd webview-ui && pnpm run watch",
     "build:webview": "cd webview-ui && pnpm run build",
-    "db:seed": "dotenvx run -- ts-node ./src/scripts/seedDb.ts"
+    "db:seed": "dotenvx run -- ts-node ./src/scripts/seedDb.ts",
+    "rag:seed": "dotenvx run -- ts-node ./src/scripts/seedRag.ts"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.35.0",
