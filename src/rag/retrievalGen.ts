@@ -34,20 +34,6 @@ export const pullingTemplate = async () => {
   return await pull<ChatPromptTemplate>("rlm/rag-prompt");
 };
 
-export const examplePrompting = async () => {
-  const promptTemplate = await pullingTemplate();
-
-  // Example:
-  const example_prompt = await promptTemplate.invoke({
-    context: "(context goes here)",
-    question: "(question goes here)",
-  });
-  const example_messages = example_prompt.messages;
-  
-  console.assert(example_messages.length === 1);
-  example_messages[0].content;
-};
-
 
 const retrieve = async (state: typeof InputStateAnnotation.State) => {
   const retrievedDocs = await vectorStore.similaritySearch(state.question);
