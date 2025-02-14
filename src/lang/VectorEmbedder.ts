@@ -30,19 +30,23 @@ class VectorEmbedder {
   };
   
   pullEmbeddingsModel = async () => {
-    console.log("Awaiting embeddings PULL...");
+    // console.log("Awaiting embeddings PULL...");
 
     return this.embeddings.client.pull({
       model: 'nomic-embed-text',
     })
     .then(() => {
-      console.log('Done Embedding PULL');
+      // console.log('Done Embedding PULL');
       
       this.ready = true;
       return;
     });
   };
 
+  /**
+   * TODO: return iterable stream instead of callback for onChunk
+   * OR flag stream=true or create stream* variant
+   */
   createVectorEmbeds = async (content: string, onChunk: (vector: number[], chunk: string) => Promise<void | SomeId>): Promise<number[][]> => {
     if (!this.ready) {
       throw new Error('Too soon. Still PULLING embeddings');

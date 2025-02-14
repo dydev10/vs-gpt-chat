@@ -18,6 +18,7 @@ import LLMChat from "./LLMChat";
 import { sampleUrls } from "./samples";
 import { BaseMessage } from "@langchain/core/messages";
 import { ChatOllama } from "@langchain/ollama";
+import ChromaService from "./ChromaService";
 
 class LangModel {
   threadId: string;
@@ -102,6 +103,10 @@ class LangModel {
   };
 
   sendMessage = async (userMessage: string) => {
+    const chromaClient = new ChromaService();
+    const tempChroma = await chromaClient.tempChroma();;
+    console.log('TEMP chromaRes', tempChroma);
+    
     let docContext = "";
     const contentVectors = await this.getContentVectors(userMessage);
     console.log('!!!Done getContentVectors', contentVectors);
@@ -118,7 +123,21 @@ class LangModel {
 
     // const chatStream = this.llmChat.chat(userMessage, docContext);
     // return chatStream;
-    const chatStream = await this.app.stream({ messages: [{ role: 'human', content: userMessage }] } , { configurable: { thread_id: this.threadId } });
+    const chatStream = await this.app.stream(
+      {
+        messages: [
+          {
+            role: 'human',
+            content: userMessage,
+          },
+        ],
+      } ,
+      {
+        configurable: {
+          thread_id: this.threadId
+        },
+      }
+    );
     return chatStream;
   };
 
