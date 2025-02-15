@@ -215,8 +215,16 @@ class RetrievalAI {
   };
 
   streamAnotherGraph = async (question: string) => {
-    let inputs = { messages: [ { role: 'user', content: question }] };
-  
+    // let inputs = { messages: [new HumanMessage(question)] };
+    let inputs = { 
+      messages: [
+        {
+          role: 'human',
+          content: question,
+        },
+      ],
+    };
+
     const stream = await this.graph.stream(inputs, { streamMode: 'messages' });
     return stream;
   };

@@ -65,7 +65,8 @@ class LLM {
         context,
       });
     } else {
-      messages = question;
+      // messages = question;
+      messages = await promptTemplate.invoke(question);
     }
     const response = await this.api.invoke(messages);
     return response;

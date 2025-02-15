@@ -222,6 +222,7 @@ export class ChatPanel {
 
             console.log("Skipping chats");
             const graphStream = await ChatPanel.currentRag.streamGraph(question);
+            // const graphStream = await ChatPanel.currentRag.streamAnotherGraph(question);
             let started = false;
             for await (const [message, _metadata] of graphStream) {
               // process.stdout.write(message.content + "|");
