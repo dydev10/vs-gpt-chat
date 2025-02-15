@@ -19,8 +19,8 @@ export const formatMessage = (content: string) => {
   // const codeBlockRegex = /```(.*?)```/sg;
   const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
   const formattedContent = content.replace(codeBlockRegex, (_match, language, code) => {
-    language = language || 'plaintext';
-   
+    const prismGrammar = Prism.languages[language];
+    language = (language && prismGrammar) ? language : 'plaintext';
     const highlightedCode = Prism.highlight(code.trim(), Prism.languages[language], language);
     
     const match = highlightedCode.match(NEW_LINE_EXP);

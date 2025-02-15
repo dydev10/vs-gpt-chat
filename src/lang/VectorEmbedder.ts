@@ -1,4 +1,4 @@
-import { DataAPIClient, Db, SomeId } from "@datastax/astra-db-ts";
+import { SomeId } from "@datastax/astra-db-ts";
 import { OllamaEmbeddings } from "@langchain/ollama";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
@@ -15,6 +15,8 @@ class VectorEmbedder {
     this.splitter = new RecursiveCharacterTextSplitter({
       chunkSize: 512,
       chunkOverlap: 100,
+      // chunkSize: 1000,
+      // chunkOverlap: 200,
     });
     this.embeddings = new OllamaEmbeddings({
       baseUrl: 'http://localhost:11434',
@@ -28,40 +30,48 @@ class VectorEmbedder {
   };
   
   pullEmbeddingsModel = async () => {
-    console.log("Awaiting embeddings PULL...");
+    // console.log("Awaiting embeddings PULL...");
 
     return this.embeddings.client.pull({
       model: 'nomic-embed-text',
     })
     .then(() => {
-      console.log('Done Embedding PULL');
+      // console.log('Done Embedding PULL');
       
       this.ready = true;
       return;
     });
   };
 
-  createVectorEmbeds = async (content: string, onChunk: (vector: number[], chunk: string) => Promise<void | SomeId>) => {
+  /**
+   * TODO: return iterable stream instead of callback for onChunk
+   * OR flag stream=true or create stream* variant
+   */
+  createVectorEmbeds = async (content: string, onChunk: (vector: number[], chunk: string) => Promise<void | SomeId>): Promise<number[][]> => {
     if (!this.ready) {
       throw new Error('Too soon. Still PULLING embeddings');
     }
+
+    const vectorEmbeds = [];
     const chunks = await this.splitter.splitText(content);
 
-
-    for await (const chunk of chunks) {        
+    for await (const chunk of chunks) {    
       try {
         const vector = await this.embeddings.embedQuery(chunk);
         console.log('Vectors length from embed', vector.length);
+        vectorEmbeds.push(vector);
 
-        await onChunk(vector, chunk);
-        console.log('...Done vector callback exec');
+        // sideEffect
+        await onChunk(vector, chunk);        
       } catch (error) {
         console.log('...xxxOHno vector', error);
         throw error;
       }
     }
+    
+    // async awaited aggregated res
+    return vectorEmbeds;
   };
-
 }
 
 export default VectorEmbedder;

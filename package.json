@@ -2,7 +2,7 @@
   "name": "vs-gpt-chat",
   "displayName": "vs-gpt-chat",
   "description": "A basic extension to use LLM models in VS Code",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -32,7 +32,8 @@
     "start:webview": "cd webview-ui && pnpm run start",
     "watch:webview": "cd webview-ui && pnpm run watch",
     "build:webview": "cd webview-ui && pnpm run build",
-    "db:seed": "dotenvx run -- ts-node ./src/scripts/seedDb.ts"
+    "db:seed": "dotenvx run -- ts-node ./src/scripts/seedDb.ts",
+    "rag:seed": "dotenvx run -- ts-node ./src/scripts/seedRag.ts"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.35.0",
@@ -52,10 +53,15 @@
     "@datastax/astra-db-ts": "^1.5.0",
     "@langchain/community": "^0.3.30",
     "@langchain/core": "0.3.39",
+    "@langchain/langgraph": "^0.2.46",
     "@langchain/ollama": "^0.2.0",
+    "cheerio": "^1.0.0",
+    "chromadb": "^1.10.4",
+    "chromadb-default-embed": "^2.13.2",
     "langchain": "^0.3.15",
     "ollama": "^0.5.12",
-    "puppeteer": "^24.2.0"
+    "puppeteer": "^24.2.0",
+    "zod": "^3.24.2"
   },
   "overrides": {
     "@langchain/core": "0.3.39"

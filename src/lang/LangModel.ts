@@ -1,93 +1,118 @@
-import { ChatOllama, OllamaEmbeddings } from "@langchain/ollama";
-// import { PromptTemplate } from '@langchain/core/prompts';
-import VectorDBService from "./VectorDBService";
-import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
-import VectorEmbedder from "./VectorEmbedder";
-import { Message } from "ollama";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-
-const samplePrompts = [
-  'write a parser for .ase files using typescript',
-  'write a parser for .ase files using typescript. parse ArrayBuffer using specs as reference',
-];
-
-const systemPromptTemplate: (docContext: string, userPrompt: string) => Message = (docContext, userMessage) => ({
-  role: 'user',
-  content: `A conversation between User and Assistant.
-  The user asks a question, and the Assistant solves it.
-  The Assistance first thinks about the reasoning process in the mind and then provides the user with the answer.
-  The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.
-  You are an Assistance who knows everything about Aseprite, a software tool for Pixel art & Animated sprite
-  Use the below content to augment what you know about Aseprite.
-  The context will provide you with the basic Aseprite api and file format.
-  ----------------
-  START CONTEXT
-  {docContext}
-  END CONTEXT
-  ----------------
-  QUESTION: {userPrompt}
-  ----------------
-  `,
-});
+import { PuppeteerWebBaseLoader } from "@langchain/community/document_loaders/web/puppeteer";
+import {
+  START,
+  END,
+  MessagesAnnotation,
+  StateGraph,
+  MemorySaver,
+  BinaryOperatorAggregate,
+  Messages,
+  StateDefinition,
+  AnnotationRoot,
+  CompiledStateGraph,
+} from "@langchain/langgraph";
+import VectorEmbedder from "./VectorEmbedder";
+import VectorDBService from "./VectorDBService";
+import LLMChat from "./LLMChat";
+import { sampleUrls } from "./samples";
+import { BaseMessage } from "@langchain/core/messages";
+import { ChatOllama } from "@langchain/ollama";
+import ChromaService from "./ChromaService";
 
 class LangModel {
+  threadId: string;
   docSources: string[];
   modelName: string;
-  model: ChatOllama;
-  vectorDBService: VectorDBService; 
+  llmChat: LLMChat;
+  vectorDBService: VectorDBService;
+
+  // workflow
+  app: any;
+  memory: MemorySaver;
 
   constructor(modelName: string = 'deepseek-r1:14b') {
+    this.threadId = crypto.randomUUID();    
     this.modelName = modelName;
-    this.docSources = [
-      'https://github.com/aseprite/aseprite/blob/main/docs/ase-file-specs.md',
-      'https://www.aseprite.org/api',
-      'https://www.aseprite.org/api/app#app',
-      'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/index.js',
-      'https://github.com/theatrejs/plugin-aseprite/blob/master/sources/factories.js',
-      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/aseprite.js',
-      'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
-    ];
+    this.docSources = [...sampleUrls];
 
-    this.model = new ChatOllama({
-      baseUrl: 'http://localhost:11434',
-      model:this.modelName,
-      temperature: 0,
-    });
+    this.llmChat = new LLMChat(this.modelName, this.threadId);
+    this.vectorDBService = new VectorDBService();
+    
+    // init workflow
+    const {
+      // workflow,
+      memory,
+      app
+    } = this.setupAppWorkflow();
 
-    this.vectorDBService = new VectorDBService();       
+    this.app = app;
+    this.memory = memory;
   }
 
-  // TODO: fix stream typing to make it arg
-  chat = async (userPrompt: string, docContext: string = '') => {
-    const systemMessage = systemPromptTemplate(docContext, userPrompt);
-  
-    const prompt = ChatPromptTemplate.fromMessages([
-      [systemMessage.role, systemMessage.content ],
-      [ 'user', userPrompt],
-    ]);
-
-    const chain = prompt.pipe(this.model);
-    const response = await chain.stream({
-      docContext,
-      userPrompt,
-    });
-    return response;
-  };
-
-  sendMessage = async (userMessage: string) => {
-    let docContext = "";
-    let messageVectors: number[][] = [];
+  getContentVectors = async (getContentVectors: string): Promise<number[][]> => {
+    let contentVectors: number[][] = [];
     const embeddings = new VectorEmbedder();
     await embeddings.setup();
     await embeddings.createVectorEmbeds(
-      userMessage,
+      getContentVectors,
       async (vector, _chunk) => {
-        messageVectors.push(vector);
+        contentVectors.push(vector);
       }
     );
+    return contentVectors;
+  };
 
+  // // Define the method for sending message to chatLLM model
+  // callChatModel = (state: typeof MessagesAnnotation.State) => {
+  //   // const chatStream = this.llmChat.chat(userMessage, docContext);
+  //   const chatStream = this.llmChat.chat(state.messages[0]);
+  //   return chatStream;
+  // };
+
+  setupAppWorkflow = () => {
+    // const llm = this.llmChat.model;
+    const llm = new ChatOllama({
+      baseUrl: 'http://localhost:11434',
+      model:this.modelName,
+      temperature: 0.6,
+    });
+
+    // Define the function that calls the model
+    const callModel = async (state: typeof MessagesAnnotation.State) => {
+      // const response = await llm.invoke(state.messages);
+      const response = await llm.stream(state.messages);
+      return { messages: response };
+    };
+    // Define a new Workflow graph
+    const workflow = new StateGraph(MessagesAnnotation)
+    // Define the node and edge
+    .addNode("model", callModel)
+    .addEdge(START, "model")
+    .addEdge("model", END);
+
+    // Add memory
+    const memory = new MemorySaver();
+    const app = workflow.compile({ checkpointer: memory });
+
+    return {
+      workflow,
+      memory,
+      app
+    };
+  };
+
+  sendMessage = async (userMessage: string) => {
+    const chromaClient = new ChromaService();
+    const tempChroma = await chromaClient.tempChroma();;
+    console.log('TEMP chromaRes', tempChroma);
+    
+    let docContext = "";
+    const contentVectors = await this.getContentVectors(userMessage);
+    console.log('!!!Done getContentVectors', contentVectors);
+    
     try {
-      for (const vec of messageVectors) {
+      for (const vec of contentVectors) {
         const docs = await this.vectorDBService.findVectorDocs(vec);
         docContext = docContext + JSON.stringify(docs);
       }
@@ -95,8 +120,25 @@ class LangModel {
       docContext = '';
       throw new Error('LangModel:: Error:: sendMessage: Error while fetching vector docs');
     }
-    
-    return this.chat(userMessage, docContext);
+
+    // const chatStream = this.llmChat.chat(userMessage, docContext);
+    // return chatStream;
+    const chatStream = await this.app.stream(
+      {
+        messages: [
+          {
+            role: 'human',
+            content: userMessage,
+          },
+        ],
+      } ,
+      {
+        configurable: {
+          thread_id: this.threadId
+        },
+      }
+    );
+    return chatStream;
   };
 
 
@@ -122,7 +164,7 @@ class LangModel {
 
     const scrapped = await loader.scrape();
     const strippedScrap = scrapped.replace(/<[^>]*>?/gm, '');
-    console.log(':--: Scrapped!');
+    console.log(':--: Scrapped!', url);
 
     // TODO: only keeps text content, change regex to include html and code
     return strippedScrap;
@@ -152,12 +194,16 @@ class LangModel {
       const embeddings = new VectorEmbedder();
       await embeddings.setup();
       
-      embeddings.createVectorEmbeds(
+      await embeddings.createVectorEmbeds(
         content,
-        this.vectorDBService.writeChunkEmbeddings,
+        async (vector, chunk) => {
+          const insertId = await this.vectorDBService.writeChunkEmbeddings(vector, chunk);
+          console.log('Success DB write vectors:', insertId);
+        }
       );
     }
 
+    console.log('...Finished loadSampleData');
     return collection;
   };
 }

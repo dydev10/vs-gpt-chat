@@ -3,6 +3,16 @@
 @import 'prismjs/themes/prism-tomorrow.css';
 @import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 
+/* disable default backticks for inline-code set by prose tailwind */
+@utility prose {
+  code {
+    &::before,
+    &::after {
+      content: none;
+    }
+  }
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

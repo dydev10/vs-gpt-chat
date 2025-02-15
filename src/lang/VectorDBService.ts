@@ -10,17 +10,10 @@ class VectorDBService {
     const {
       ASTRA_DB_TOKEN,
       ASTRA_DB_NAMESPACE,
-      ASTRA_DB_COLLECTION,
       ASTRA_DB_URL,
     } = process.env;
 
-    console.log('DB Init', {
-      ASTRA_DB_TOKEN,
-      ASTRA_DB_NAMESPACE,
-      ASTRA_DB_COLLECTION,
-      ASTRA_DB_URL,
-    });
-    
+    console.log('DB Init...');
 
     this.client = new DataAPIClient(ASTRA_DB_TOKEN);  
     this.db = this.client.db(
@@ -49,7 +42,7 @@ class VectorDBService {
         },
       );
 
-      console.log("DB CONNECTION", conn);
+      console.log("DB CONNECTION ...Success");
       return conn;
       
     } else {

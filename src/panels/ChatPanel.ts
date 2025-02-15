@@ -2,6 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import LangModel from "../lang/LangModel";
+import { streamGraph } from "../rag/retrievalGen";
 
 /**
  * Comments marked with [HelloWorld] from the HelloWorld webview panels for doc reference
@@ -147,6 +148,42 @@ export class ChatPanel {
     `;
   }
 
+  private async handleChatMessageChunk(message: { command: string, text: string }) {
+    if (!ChatPanel.currentLLM) { return; };
+
+      const userPrompt = message.text;
+      let responseText = '';
+
+      try {
+        const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
+        let started = false;
+
+        for await (const part of streamResponse) {
+          // Maybe this await loop will fix no streaming??
+          for await (const mPart of part.model.messages) {
+            if (!started) {
+              started = true;
+              this._panel.webview.postMessage({ command: 'chatStart', text: '' });
+            }
+            responseText += mPart.content;
+            this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
+          }
+
+          // send stream end event
+          started = false;
+          this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
+        }
+
+      } catch (error: any) {
+        console.log('&&   XXxxxxxxx&&&& __________ERROr NOW');
+        console.error(error);
+
+        this._panel.webview.postMessage({ command: 'chatError', text: `${error.message}` });
+        window.showErrorMessage('Error while running model', error.message);
+      }
+      return;
+  }
+
   /**
    * [HelloWorld]
    * 
@@ -170,33 +207,27 @@ export class ChatPanel {
           };
           
           case "chat": {
-            if (!ChatPanel.currentLLM) { return; };
-
-            const userPrompt = message.text;
+            const question = message.text;
             let responseText = '';
+            // await this.handleChatMessageChunk(message);
 
-            try {
-              const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
-              let started = false;
-  
-              for await (const part of streamResponse) {
-                if (!started) {
-                  started = true;
-                  this._panel.webview.postMessage({ command: 'chatStart', text: '' });
-                }
-
-                responseText += part.content;
-                this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
+            console.log("Skipping chats");
+            const graphStream = await streamGraph(question);
+            let started = false;
+            for await (const [message, _metadata] of graphStream) {
+              // process.stdout.write(message.content + "|");
+              
+              if (!started) {
+                started = true;
+                this._panel.webview.postMessage({ command: 'chatStart', text: '' });
               }
-
-              // send stream end event
-              started = false;
-              this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
-            } catch (error: any) {
-              this._panel.webview.postMessage({ command: 'chatError', text: String(error.message) });
-              window.showErrorMessage('Error while running model', error.message);
+              responseText += message.content;
+              this._panel.webview.postMessage({ command: 'chatResponse', text: responseText });
             }
-            return;
+            // send stream end event
+            started = false;
+            this._panel.webview.postMessage({ command: 'chatEnd', text: '' });
+            console.log('graphStream ...End');
           };
         }
       },
