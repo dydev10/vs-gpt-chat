@@ -27,6 +27,18 @@ class DocScrapper {
     });
   };
 
+  static runYoinkList = async (list: string[]): Promise<Document[][]> => {
+    const yoinkList: Document[][] = [];
+    for await (const url of list) {
+      const scrapper = new DocScrapper(url);
+      const contentSplits = await scrapper.yoinkDoc();
+
+      yoinkList.push(contentSplits);
+    }
+    console.log('Finished ...All Yoink');
+    return yoinkList;
+  };
+
   loadDoc = async (): Promise<Document[]> => {
     const docs = await this.loader.load();
 
@@ -61,7 +73,7 @@ class DocScrapper {
     const docs = await this.loadDoc();
     const splits = await this.splitDoc(docs);
     this.setMetadata(splits);
-    
+    console.log('Finished ...Yoink');
     return splits;
   };
 }
