@@ -20,7 +20,7 @@ import {
   SystemMessage,
   ToolMessage,
 } from "@langchain/core/messages";
-import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
+import { createReactAgent, ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 
 export const retrieverSchema = z.object({ query: z.string() });
 
@@ -50,6 +50,8 @@ class RetrievalAI {
   threadConfig: { streamMode: StreamMode, configurable: { thread_id: string } };
   memory: MemorySaver;
 
+  agent: any;
+
   constructor() {
     this.threadConfig = {
       configurable: { thread_id: crypto.randomUUID(), },
@@ -64,7 +66,28 @@ class RetrievalAI {
 
     // rag 2 graph
     this.anotherGraph = this.setupAnotherGraph();
+  
+    this.agent = this.setupAgent();
   }
+
+  setupAgent = () => {
+    const agent = createReactAgent({ llm: llm.api, tools: [this.getRetriever()] });
+    return agent;
+  };
+
+  streamAgent = async (question: string) => {
+    let inputs = { 
+      messages: [
+        {
+          role: 'human',
+          content: question,
+        },
+      ],
+    };
+
+    const stream = await this.agent.stream(inputs, { streamMode: 'messages', configurable: { thread_id: this.threadConfig.configurable.thread_id } });
+    return stream;
+  };
 
   setupGraph = () => {
     const graph = new StateGraph(StateAnnotationQA)
@@ -117,7 +140,6 @@ class RetrievalAI {
 
   streamGraph = async (question: string) => {
     let inputs = { question };
-  
     const stream = await this.graph.stream(inputs, this.threadConfig);
     return stream;
   };
@@ -135,6 +157,7 @@ class RetrievalAI {
     const retriever = tool(
       async ({ query }) => {
         const retrievedDocs = await vectorStore.similaritySearch(query, 2);
+        
         const serialized = retrievedDocs
           .map(
             (doc) => `Source: ${doc.metadata.source}\nContent: ${doc.pageContent}`
