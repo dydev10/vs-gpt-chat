@@ -25,10 +25,5 @@ const vectorStore = new Chroma(embeddings, {
   url: CHROMA_URL,
 });
 
-// // need to do this in chroma 
-// vectorStore.collectionMetadata = {
-//   section: 'string'
-// };
-
 export { modelName, llm, embeddings, vectorStore };
 
