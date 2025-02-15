@@ -53,7 +53,7 @@ class LLM {
     return await pull<ChatPromptTemplate>("rlm/rag-prompt");
   };
 
-  invoke = async (question: BaseLanguageModelInput, context: string = '') => {
+  invoke = async (question: BaseLanguageModelInput, context: string = '', thread_id: string = '') => {
     const promptTemplate = await this.pullTemplate();
     // const promptTemplate = ChatPromptTemplate.fromMessages([
     //   ["user", template],
@@ -68,7 +68,7 @@ class LLM {
       // messages = question;
       messages = await promptTemplate.invoke(question);
     }
-    const response = await this.api.invoke(messages);
+    const response = await this.api.invoke(messages, { configurable: { thread_id } });
     return response;
   };
 

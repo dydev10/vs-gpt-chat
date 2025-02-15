@@ -4,6 +4,8 @@ import {
   MessagesAnnotation,
   CompiledStateGraph,
   StateGraph,
+  MemorySaver,
+  StreamMode,
 } from "@langchain/langgraph";
 
 // import { concat } from "@langchain/core/utils/stream";
@@ -45,10 +47,20 @@ class RetrievalAI {
     string
   >;
   retriever: DynamicStructuredTool<typeof retrieverSchema>;
+  threadConfig: { streamMode: StreamMode, configurable: { thread_id: string } };
+  memory: MemorySaver;
 
   constructor() {
-    this.graph = this.setupGraph();
+    this.threadConfig = {
+      configurable: { thread_id: crypto.randomUUID(), },
+      streamMode: 'messages',
+    };
+    this.memory = new MemorySaver();
+
     this.retriever = this.getRetriever();
+    
+    // rag graph
+    this.graph = this.setupGraph();
 
     // rag 2 graph
     this.anotherGraph = this.setupAnotherGraph();
@@ -63,7 +75,7 @@ class RetrievalAI {
       .addEdge("analyzeQuery", "retrieveQA")
       .addEdge("retrieveQA", "generateQA")
       .addEdge("generateQA", "__end__")
-      .compile();
+      .compile({ checkpointer: this.memory });
 
     return graph;
   };
@@ -71,7 +83,7 @@ class RetrievalAI {
   // analyzeQuery = async (state: typeof InputStateAnnotation.State) => {
   analyzeQuery = async (state: typeof InputStateAnnotation.State) => {
     const structuredLlm = llm.withStructuredOutput(searchStruct);
-    const result = await structuredLlm.invoke(state.question);
+    const result = await structuredLlm.invoke(state.question, { configurable: { thread_id: this.threadConfig.configurable } });
     return { search: result };
   };
 
@@ -91,7 +103,7 @@ class RetrievalAI {
 
   generateQA = async (state: typeof StateAnnotationQA.State) => {
     const docsContent = state.context.map((doc) => doc.pageContent).join("\n");
-    const response = await llm.invoke(state.question, docsContent);
+    const response = await llm.invoke(state.question, docsContent, this.threadConfig.configurable.thread_id);
     return { answer: response.content };
   };
 
@@ -106,7 +118,7 @@ class RetrievalAI {
   streamGraph = async (question: string) => {
     let inputs = { question };
   
-    const stream = await this.graph.stream(inputs, { streamMode: 'messages' });
+    const stream = await this.graph.stream(inputs, this.threadConfig);
     return stream;
   };
 
@@ -154,7 +166,7 @@ class RetrievalAI {
       .addEdge("tools", "generate")
       .addEdge("generate", "__end__");
 
-    const anotherGraph = graphBuilder.compile();
+    const anotherGraph = graphBuilder.compile({ checkpointer: this.memory });
     
     return anotherGraph;
   };
@@ -162,7 +174,7 @@ class RetrievalAI {
   // Step 1: Generate an AIMessage that may include a tool-call to be sent.
   queryOrRespond = async (state: typeof MessagesAnnotation.State) => {
     const llmWithTools = llm.bindTools([this.retriever]);
-    const response = await llmWithTools.invoke(state.messages);
+    const response = await llmWithTools.invoke(state.messages, { configurable: { thread_id: this.threadConfig.configurable.thread_id } });
     // MessagesState appends messages to state instead of overwriting
     return { messages: [response] };
   };
@@ -210,7 +222,7 @@ class RetrievalAI {
     ];
 
     // Run
-    const response = await llm.invoke(prompt);
+    const response = await llm.invoke(prompt, '', this.threadConfig.configurable.thread_id);
     return { messages: [response] };
   };
 
@@ -225,7 +237,7 @@ class RetrievalAI {
       ],
     };
 
-    const stream = await this.graph.stream(inputs, { streamMode: 'messages' });
+    const stream = await this.graph.stream(inputs, { streamMode: 'messages', configurable: { thread_id: this.threadConfig.configurable.thread_id } });
     return stream;
   };
 }
