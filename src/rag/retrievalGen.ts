@@ -8,7 +8,7 @@ import { Document } from "@langchain/core/documents";
 import { Annotation, StateGraph } from "@langchain/langgraph";
 
 import { concat } from "@langchain/core/utils/stream";
-import { llm, vectorStore, vectorStoreQA } from "./ragApp";
+import { llm, vectorStore } from "./ragApp";
 
 
 const InputStateAnnotation = Annotation.Root({

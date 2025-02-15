@@ -2,7 +2,7 @@ import "cheerio";
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 import { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { vectorStore, vectorStoreQA } from "./ragApp";
+import { vectorStore } from "./ragApp";
 
 // step2
 // export default async (): Document<Record<string, any>>[] => {
@@ -52,20 +52,8 @@ const docStoring =  async (allSplits: Document[]) => {
   await vectorStore.addDocuments(allSplits);
 };
 
-const docStoringQA =  async (allSplits: Document[]) => {
-  await vectorStoreQA.addDocuments(allSplits);
-};
-
 export const docIndexing = async () => {
   return await docStoring(
-    await textSplitting(
-      await docLoading()
-    )
-  );
-};
-
-export const docIndexingQA = async () => {
-  return await docStoringQA(
     await textSplitting(
       await docLoading()
     )
