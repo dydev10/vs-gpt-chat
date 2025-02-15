@@ -65,7 +65,7 @@ export const docIndexing = async () => {
 };
 
 export const docIndexingQA = async () => {
-  return await docStoring(
+  return await docStoringQA(
     await textSplitting(
       await docLoading()
     )

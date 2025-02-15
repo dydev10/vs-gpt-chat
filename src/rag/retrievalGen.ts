@@ -47,14 +47,16 @@ const retrieveQA = async (state: typeof StateAnnotationQA.State) => {
   // const retrievedDocs = await vectorStore.similaritySearch(
   //   state.search.query,
   //   2,
-  //   { 'metadata.section': 'is_equal_to_this' },
-  //   // filter(state.question) as Where // wrong type
+  //   { 'section': 'is_equal_to_this' }, // wrong type
   // );
   const retrievedDocs = await vectorStoreQA.similaritySearch(
     state.search.query,
     2,
     filter
   );
+
+  console.log('Retrieved QA docs:', retrievedDocs.length);
+  
   return { context: retrievedDocs };
 };
 
