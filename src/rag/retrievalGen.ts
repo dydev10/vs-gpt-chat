@@ -42,17 +42,27 @@ const analyzeQuery = async (state: typeof InputStateAnnotation.State) => {
   return { search: result };
 };
 
-const retrieveQA = async (state: typeof StateAnnotationQA.State) => {
-  const filter = (doc: Document) => doc.metadata.section === state.search.section;
-  // const retrievedDocs = await vectorStore.similaritySearch(
-  //   state.search.query,
-  //   2,
-  //   { 'section': 'is_equal_to_this' }, // wrong type
-  // );
-  const retrievedDocs = await vectorStoreQA.similaritySearch(
+const retrieve = async (state: typeof StateAnnotationQA.State) => {
+  const retrievedDocs = await vectorStore.similaritySearch(
     state.search.query,
     2,
-    filter
+    { 'section': { '$eq': state.search.section } }, // wrong type
+  );
+
+  console.log('Retrieved non-QA docs:', retrievedDocs.length);
+  
+  return { context: retrievedDocs };
+};
+
+const retrieveQA = async (state: typeof StateAnnotationQA.State) => {
+  const retrievedDocs = await vectorStore.similaritySearch(
+    state.search.query,
+    2,
+    {
+      'section': {
+        '$eq': state.search.section
+      },
+    },
   );
 
   console.log('Retrieved QA docs:', retrievedDocs.length);
@@ -75,9 +85,10 @@ const generate = async (state: typeof StateAnnotationQA.State) => {
 };
 
 const generateQA = async (state: typeof StateAnnotationQA.State) => {
-  const promptTemplate = ChatPromptTemplate.fromMessages([
-    ["user", template],
-  ]);;
+  const promptTemplate = await pullingTemplate();
+  // const promptTemplate = ChatPromptTemplate.fromMessages([
+  //   ["user", template],
+  // ]);
   const docsContent = state.context.map((doc) => doc.pageContent).join("\n");
   const messages = await promptTemplate.invoke({
     question: state.question,
@@ -96,6 +107,7 @@ const structuredLlm = llm.withStructuredOutput(searchSchema);
 
 export const graph = new StateGraph(StateAnnotationQA)
   .addNode("analyzeQuery", analyzeQuery)
+  // .addNode("retrieveQA", retrieve)
   .addNode("retrieveQA", retrieveQA)
   .addNode("generateQA", generateQA)
   .addEdge("__start__", "analyzeQuery")
