@@ -1,7 +1,10 @@
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatOllama } from "@langchain/ollama";
 import { pull } from "langchain/hub";
-import z from "zod";
+import { DynamicStructuredTool } from "langchain/tools";
+import { z } from "zod";
+import { retrieverSchema } from "./RetrievalAI";
+import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 
 
 // predefined llm model names
@@ -50,21 +53,30 @@ class LLM {
     return await pull<ChatPromptTemplate>("rlm/rag-prompt");
   };
 
-  invoke = async (question: string, context: string) => {
+  invoke = async (question: BaseLanguageModelInput, context: string = '') => {
     const promptTemplate = await this.pullTemplate();
     // const promptTemplate = ChatPromptTemplate.fromMessages([
     //   ["user", template],
     // ]);
-    const messages = await promptTemplate.invoke({
-      question,
-      context,
-    });
+    let messages;
+    if (typeof question === 'string') {
+      messages = await promptTemplate.invoke({
+        question,
+        context,
+      });
+    } else {
+      messages = question;
+    }
     const response = await this.api.invoke(messages);
     return response;
   };
 
   withStructuredOutput = (searchSchema: typeof searchStruct) => {
     return this.api.withStructuredOutput(searchSchema);
+  };
+
+  bindTools = (tools: DynamicStructuredTool<typeof retrieverSchema>[]) => {
+    return this.api.bindTools(tools);
   };
 }
 

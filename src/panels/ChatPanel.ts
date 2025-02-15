@@ -2,7 +2,7 @@ import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vsco
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import LangModel from "../lang/LangModel";
-import { streamGraph } from "../rag/retrievalGen";
+import RetrievalAI from "../rag/RetrievalAI";
 
 /**
  * Comments marked with [HelloWorld] from the HelloWorld webview panels for doc reference
@@ -24,6 +24,7 @@ import { streamGraph } from "../rag/retrievalGen";
 export class ChatPanel {
   public static currentPanel: ChatPanel | undefined;
   public static currentLLM: LangModel | undefined;
+  public static currentRag: RetrievalAI | undefined;
   private readonly _panel: WebviewPanel;
   private _disposables: Disposable[] = [];
 
@@ -50,6 +51,10 @@ export class ChatPanel {
 
     if(!ChatPanel.currentLLM) {
       ChatPanel.currentLLM = new LangModel('deepseek-r1:7b');
+    }
+
+    if(!ChatPanel.currentRag) {
+      ChatPanel.currentRag = new RetrievalAI();
     }
   }
 
@@ -95,6 +100,7 @@ export class ChatPanel {
   public dispose() {
     ChatPanel.currentPanel = undefined;
     ChatPanel.currentLLM = undefined;
+    ChatPanel.currentRag = undefined;
 
     // Dispose of the current webview panel
     this._panel.dispose();
@@ -149,13 +155,14 @@ export class ChatPanel {
   }
 
   private async handleChatMessageChunk(message: { command: string, text: string }) {
-    if (!ChatPanel.currentLLM) { return; };
+    if (!ChatPanel.currentLLM || !ChatPanel.currentRag) { return; };
 
       const userPrompt = message.text;
       let responseText = '';
 
       try {
-        const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
+        // const streamResponse = await ChatPanel.currentLLM.sendMessage(userPrompt);
+        const streamResponse = await ChatPanel.currentRag.streamGraph(userPrompt);
         let started = false;
 
         for await (const part of streamResponse) {
@@ -207,12 +214,14 @@ export class ChatPanel {
           };
           
           case "chat": {
+            if (!ChatPanel.currentRag) { return; }
+
             const question = message.text;
             let responseText = '';
             // await this.handleChatMessageChunk(message);
 
             console.log("Skipping chats");
-            const graphStream = await streamGraph(question);
+            const graphStream = await ChatPanel.currentRag.streamGraph(question);
             let started = false;
             for await (const [message, _metadata] of graphStream) {
               // process.stdout.write(message.content + "|");
