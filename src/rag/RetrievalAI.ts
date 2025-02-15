@@ -17,12 +17,11 @@ const StateAnnotationQA = Annotation.Root({
   answer: Annotation<string>,
 });
 
-
 class RetrievalAI {
   graph: CompiledStateGraph<
-    typeof StateAnnotationQA.State,  // S (State type)
-    typeof StateAnnotationQA.Update, // U (Update type)
-    string                               // N (Node names)
+    typeof StateAnnotationQA.State,   // S (State type)
+    typeof StateAnnotationQA.Update,  // U (Update type)
+    string                            // N (Node names)
   >;
 
   constructor() {
