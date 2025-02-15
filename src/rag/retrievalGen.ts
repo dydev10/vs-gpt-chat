@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
@@ -7,8 +5,9 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { Document } from "@langchain/core/documents";
 import { Annotation, StateGraph } from "@langchain/langgraph";
 
-import { concat } from "@langchain/core/utils/stream";
+// import { concat } from "@langchain/core/utils/stream";
 import { llm, vectorStore } from "./ragApp";
+import { searchStruct, SectionQuerySchema, template } from "./LLM";
 
 
 const InputStateAnnotation = Annotation.Root({
@@ -17,21 +16,12 @@ const InputStateAnnotation = Annotation.Root({
 
 const StateAnnotationQA = Annotation.Root({
   question: Annotation<string>,
-  search: Annotation<z.infer<typeof searchSchema>>,
+  search: Annotation<SectionQuerySchema>,
   context: Annotation<Document[]>,
   answer: Annotation<string>,
 });
 
-const template = `Use the following pieces of context to answer the question at the end.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-Use three sentences maximum and keep the answer as concise as possible.
-Always say "thanks for asking!" at the end of the answer.
 
-{context}
-
-Question: {question}
-
-Helpful Answer:`;
 
 export const pullingTemplate = async () => {
   return await pull<ChatPromptTemplate>("rlm/rag-prompt");
@@ -59,9 +49,7 @@ const retrieveQA = async (state: typeof StateAnnotationQA.State) => {
     state.search.query,
     2,
     {
-      'section': {
-        '$eq': state.search.section
-      },
+      'section': state.search.section,
     },
   );
 
@@ -71,39 +59,18 @@ const retrieveQA = async (state: typeof StateAnnotationQA.State) => {
 };
 
 const generate = async (state: typeof StateAnnotationQA.State) => {
-  // const promptTemplate = await pullingTemplate();
-  const promptTemplateCustom = ChatPromptTemplate.fromMessages([
-    ["user", template],
-  ]);;
   const docsContent = state.context.map((doc) => doc.pageContent).join("\n");
-  const messages = await promptTemplateCustom.invoke({
-    question: state.question,
-    context: docsContent,
-  });
-  const response = await llm.invoke(messages);
+  const response = await llm.invoke(state.question, docsContent);
   return { answer: response.content };
 };
 
 const generateQA = async (state: typeof StateAnnotationQA.State) => {
-  const promptTemplate = await pullingTemplate();
-  // const promptTemplate = ChatPromptTemplate.fromMessages([
-  //   ["user", template],
-  // ]);
   const docsContent = state.context.map((doc) => doc.pageContent).join("\n");
-  const messages = await promptTemplate.invoke({
-    question: state.question,
-    context: docsContent,
-  });
-  const response = await llm.invoke(messages);
+  const response = await llm.invoke(state.question, docsContent);
   return { answer: response.content };
 };
 
-const searchSchema = z.object({
-  query: z.string().describe("Search query to run."),
-  section: z.enum(["beginning", "middle", "end"]).describe("Section to query."),
-});
-
-const structuredLlm = llm.withStructuredOutput(searchSchema);
+const structuredLlm = llm.withStructuredOutput(searchStruct);
 
 export const graph = new StateGraph(StateAnnotationQA)
   .addNode("analyzeQuery", analyzeQuery)

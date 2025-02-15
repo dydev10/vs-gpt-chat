@@ -1,10 +1,10 @@
 
 import { Chroma } from "@langchain/community/vectorstores/chroma";
+import { DocumentInterface } from "@langchain/core/documents";
 import { OllamaEmbeddings } from "@langchain/ollama";
 import { Document } from "langchain/document";
 
 const { CHROMA_URL } = process.env;
-
 
 class VectorStore {
   embeddings: OllamaEmbeddings;
@@ -32,7 +32,7 @@ class VectorStore {
     return allSplits;
   };
 
-  addDocSplits = async (allSplits: Document[]) => {
+  addDocuments = async (allSplits: Document[]) => {
     this.setDocumentMetadata(allSplits);
     await this.api.addDocuments(allSplits);
   };
@@ -40,6 +40,15 @@ class VectorStore {
   /**
    * vector query helpers
    */
+  similaritySearch = async (query: string, limit: number, filter: {}): Promise<DocumentInterface[]> => {
+    const result = await this.api.similaritySearch(
+      query,
+      limit,
+      filter,
+    );
+
+    return result;
+  };
 }
 
 export default VectorStore;
