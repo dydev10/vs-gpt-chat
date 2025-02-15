@@ -1,7 +1,7 @@
 import { ChatOllama } from "@langchain/ollama";
 import { OllamaEmbeddings } from "@langchain/ollama";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
-
+import { MemoryVectorStore } from "langchain/vectorstores/memory";
 
 import "cheerio";
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
@@ -31,8 +31,9 @@ const vectorStore = new Chroma(embeddings, {
   collectionName: "rag-collection",
   url: CHROMA_URL,
 });
+const vectorStoreQA = new MemoryVectorStore(embeddings);
 
-export { modelName, llm, embeddings, vectorStore };
+export { modelName, llm, embeddings, vectorStore, vectorStoreQA };
 
 /**
  * # Preview

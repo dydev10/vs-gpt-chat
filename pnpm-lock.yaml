@@ -44,6 +44,9 @@ importers:
       puppeteer:
         specifier: ^24.2.0
         version: 24.2.0(typescript@5.7.3)
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
     devDependencies:
       '@dotenvx/dotenvx':
         specifier: ^1.35.0

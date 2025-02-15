@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 
@@ -6,15 +8,16 @@ import { Document } from "@langchain/core/documents";
 import { Annotation, StateGraph } from "@langchain/langgraph";
 
 import { concat } from "@langchain/core/utils/stream";
-import { llm, vectorStore } from "./ragApp";
+import { llm, vectorStore, vectorStoreQA } from "./ragApp";
 
 
 const InputStateAnnotation = Annotation.Root({
   question: Annotation<string>,
 });
 
-const StateAnnotation = Annotation.Root({
+const StateAnnotationQA = Annotation.Root({
   question: Annotation<string>,
+  search: Annotation<z.infer<typeof searchSchema>>,
   context: Annotation<Document[]>,
   answer: Annotation<string>,
 });
@@ -34,13 +37,28 @@ export const pullingTemplate = async () => {
   return await pull<ChatPromptTemplate>("rlm/rag-prompt");
 };
 
+const analyzeQuery = async (state: typeof InputStateAnnotation.State) => {
+  const result = await structuredLlm.invoke(state.question);
+  return { search: result };
+};
 
-const retrieve = async (state: typeof InputStateAnnotation.State) => {
-  const retrievedDocs = await vectorStore.similaritySearch(state.question);
+const retrieveQA = async (state: typeof StateAnnotationQA.State) => {
+  const filter = (doc: Document) => doc.metadata.section === state.search.section;
+  // const retrievedDocs = await vectorStore.similaritySearch(
+  //   state.search.query,
+  //   2,
+  //   { 'metadata.section': 'is_equal_to_this' },
+  //   // filter(state.question) as Where // wrong type
+  // );
+  const retrievedDocs = await vectorStoreQA.similaritySearch(
+    state.search.query,
+    2,
+    filter
+  );
   return { context: retrievedDocs };
 };
 
-const generate = async (state: typeof StateAnnotation.State) => {
+const generate = async (state: typeof StateAnnotationQA.State) => {
   // const promptTemplate = await pullingTemplate();
   const promptTemplateCustom = ChatPromptTemplate.fromMessages([
     ["user", template],
@@ -54,12 +72,34 @@ const generate = async (state: typeof StateAnnotation.State) => {
   return { answer: response.content };
 };
 
-export const graph = new StateGraph(StateAnnotation)
-  .addNode("retrieve", retrieve)
-  .addNode("generate", generate)
-  .addEdge("__start__", "retrieve")
-  .addEdge("retrieve", "generate")
-  .addEdge("generate", "__end__")
+const generateQA = async (state: typeof StateAnnotationQA.State) => {
+  const promptTemplate = ChatPromptTemplate.fromMessages([
+    ["user", template],
+  ]);;
+  const docsContent = state.context.map((doc) => doc.pageContent).join("\n");
+  const messages = await promptTemplate.invoke({
+    question: state.question,
+    context: docsContent,
+  });
+  const response = await llm.invoke(messages);
+  return { answer: response.content };
+};
+
+const searchSchema = z.object({
+  query: z.string().describe("Search query to run."),
+  section: z.enum(["beginning", "middle", "end"]).describe("Section to query."),
+});
+
+const structuredLlm = llm.withStructuredOutput(searchSchema);
+
+export const graph = new StateGraph(StateAnnotationQA)
+  .addNode("analyzeQuery", analyzeQuery)
+  .addNode("retrieveQA", retrieveQA)
+  .addNode("generateQA", generateQA)
+  .addEdge("__start__", "analyzeQuery")
+  .addEdge("analyzeQuery", "retrieveQA")
+  .addEdge("retrieveQA", "generateQA")
+  .addEdge("generateQA", "__end__")
   .compile();
 
 export const invokeGraph = async () => {
