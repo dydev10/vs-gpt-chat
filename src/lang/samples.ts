@@ -12,3 +12,9 @@ export const sampleUrls = [
   'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/aseprite.js',
   'https://raw.githubusercontent.com/theatrejs/plugin-aseprite/refs/heads/master/sources/spritesheet.js',
 ];
+
+
+export const sampledHistoryPrompt = [
+  'What is Task Decomposition?',
+  'What are common ways of doing it?',
+];

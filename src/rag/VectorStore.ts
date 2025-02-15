@@ -40,7 +40,7 @@ class VectorStore {
   /**
    * vector query helpers
    */
-  similaritySearch = async (query: string, limit: number, filter: {}): Promise<DocumentInterface[]> => {
+  similaritySearch = async (query: string, limit: number, filter?: {}): Promise<DocumentInterface[]> => {
     const result = await this.api.similaritySearch(
       query,
       limit,

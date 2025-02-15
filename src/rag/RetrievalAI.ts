@@ -4,7 +4,10 @@ import { Annotation, CompiledStateGraph, StateDefinition, StateGraph, StateType,
 // import { concat } from "@langchain/core/utils/stream";
 import { llm, vectorStore } from "./ragApp";
 import { searchStruct, SectionQuerySchema, template } from "./LLM";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
 
+export const retrieverSchema = z.object({ query: z.string() });
 
 const InputStateAnnotation = Annotation.Root({
   question: Annotation<string>,
@@ -40,6 +43,32 @@ class RetrievalAI {
       .compile();
 
     return graph;
+  };
+
+  /**
+   * 
+   * @returns Tool retriever
+   */
+  getRetriever = () => {
+    const retriever = tool(
+      async ({ query }) => {
+        const retrievedDocs = await vectorStore.similaritySearch(query, 2);
+        const serialized = retrievedDocs
+          .map(
+            (doc) => `Source: ${doc.metadata.source}\nContent: ${doc.pageContent}`
+          )
+          .join("\n");
+        return [serialized, retrievedDocs];
+      },
+      {
+        name: 'retriever',
+        description: "Retrieves information related to a query.",
+        schema: retrieverSchema,
+        responseFormat: 'content_and_artifact',
+      }
+    );
+
+    return retriever;
   };
 
   // analyzeQuery = async (state: typeof InputStateAnnotation.State) => {
